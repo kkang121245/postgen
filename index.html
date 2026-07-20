@@ -100,7 +100,7 @@ body{
 }
 .icon-btn.accent:hover{ transform: translateY(-1px) scale(1.04); box-shadow: 0 8px 20px rgba(214, 137, 179, 0.45); }
 
-.feed{
+.feed {
   flex: 1;
   width: 100%;
   max-width: 560px;
@@ -133,6 +133,9 @@ body{
   position: relative;
   filter: drop-shadow(0 10px 26px rgba(180, 155, 220, 0.16));
 }
+.insta-post {
+  max-width: 100% !important;
+}
 .post-menu-btn{
   position: absolute;
   top: 20px;
@@ -147,6 +150,18 @@ body{
   transition: background .15s ease;
 }
 .post-menu-btn:hover{ background: rgba(0,0,0,0.06); }
+.post-menu-btn--dots::after{
+  content: "•••";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  color: #8e8e8e;
+  letter-spacing: 2px;
+  font-size: 13px;
+  pointer-events: none;
+}
 .post-menu-dropdown{
   position: absolute;
   top: 48px;
@@ -307,6 +322,37 @@ body{
   flex-direction: column;
   gap: 16px;
 }
+.type-toggle {
+  display: flex;
+  gap: 8px;
+  background: #fbf6fb;
+  padding: 6px;
+  border-radius: 16px;
+  margin-bottom: 4px;
+}
+.type-toggle label {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #9385ab;
+  padding: 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all .2s;
+  user-select: none;
+}
+.type-toggle input { display: none; }
+.type-toggle input:checked + label {
+  background: #fff;
+  color: var(--accent);
+  box-shadow: 0 4px 12px rgba(170, 140, 210, 0.15);
+}
+.dynamic-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 .field{ display: flex; flex-direction: column; gap: 6px; }
 .field label{ font-size: 12.5px; font-weight: 700; color: #9385ab; }
 .field-row{ display: flex; gap: 8px; align-items: flex-end; }
@@ -399,7 +445,6 @@ input[type="text"]:focus, textarea:focus{ border-color: var(--accent-b); backgro
       <p>아직 게시물이 없어요</p>
       <button type="button" class="btn-primary" onclick="openModal()">+ 첫 게시물 만들기</button>
     </div>
-    <!-- posts rendered here -->
   </main>
 
   <div class="feed-footer">
@@ -421,7 +466,19 @@ input[type="text"]:focus, textarea:focus{ border-color: var(--accent-b); backgro
       </button>
     </div>
     <form class="modal-body" id="postForm" onsubmit="handleSubmit(event)">
-      <div class="field">
+      <div class="type-toggle">
+        <input type="radio" name="f-type" id="type-post" value="post" checked onchange="toggleFields()">
+        <label for="type-post">게시글</label>
+        
+        <input type="radio" name="f-type" id="type-grid" value="grid" onchange="toggleFields()">
+        <label for="type-grid">피드 (프로필 UI)</label>
+      </div>
+
+      <div class="field">        
+        <div class="field" style="flex-direction: row; align-items: center; gap: 8px;">
+          <input type="checkbox" id="f-expanded" style="width: auto;">
+          <label for="f-expanded" style="margin: 0;">펼쳐두기</label>
+        </div>
         <label>이름</label>
         <input type="text" id="f-username" placeholder="noname">
       </div>
@@ -429,25 +486,33 @@ input[type="text"]:focus, textarea:focus{ border-color: var(--accent-b); backgro
         <label>프로필 사진 URL</label>
         <input type="text" id="f-profile" placeholder="비워두면 첫 번째 사진 자동 사용">
       </div>
-      <div class="field-row">
-        <div class="field">
-          <label>작성 시간</label>
-          <input type="text" id="f-time" placeholder="오후 4:21">
+
+      <div id="postOnlyFieldsTop" class="dynamic-fields">
+        <div class="field-row">
+          <div class="field">
+            <label>작성 시간</label>
+            <input type="text" id="f-time" placeholder="오후 4:21">
+          </div>
+          <button type="button" class="btn-now" onclick="document.getElementById('f-time').value = getCurrentTimeStr()">지금</button>
         </div>
-        <button type="button" class="btn-now" onclick="document.getElementById('f-time').value = getCurrentTimeStr()">지금</button>
       </div>
+
       <div class="field">
         <label>이미지 주소 (엔터로 구분)</label>
         <textarea class="images-textarea" id="f-images" placeholder="https://example.com/img1.jpg&#10;https://example.com/img2.jpg"></textarea>
       </div>
-      <div class="field">
-        <label>본문 텍스트</label>
-        <textarea id="f-caption" style="height: 80px; resize: vertical;" placeholder="본문 내용 입력"></textarea>
+
+      <div id="postOnlyFieldsBottom" class="dynamic-fields">
+        <div class="field">
+          <label id="captionLabel">본문 텍스트</label>
+          <textarea id="f-caption" style="height: 80px; resize: vertical;" placeholder="본문 내용 입력"></textarea>
+        </div>
+        <div class="field">
+          <label>해시태그</label>
+          <input type="text" id="f-tags" placeholder="#피드">
+        </div>
       </div>
-      <div class="field">
-        <label>해시태그</label>
-        <input type="text" id="f-tags" placeholder="#피드">
-      </div>
+
       <div class="modal-actions">
         <button type="button" class="btn-outline" onclick="closeModal()">취소</button>
         <button type="submit" class="btn-primary" id="submitBtn">등록하기</button>
@@ -456,7 +521,6 @@ input[type="text"]:focus, textarea:focus{ border-color: var(--accent-b); backgro
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast">
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
   <span id="toastMsg">코드가 복사되었습니다</span>
@@ -466,20 +530,19 @@ input[type="text"]:focus, textarea:focus{ border-color: var(--accent-b); backgro
 const baseStaticCss = `
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
-
 .insta-gallery-container * { box-sizing: border-box !important; }
 
-.insta-post {width: 100%; max-width48px;}
+.insta-post {width: 100%; max-width: 480px;}
 .insta-post details>summary { width: 100%; }
 .insta-post .post-content details>summary { padding: 0 !important; }
 .insta-post details>summary:before { display: none !important; }
-.post-content details>summary:before, [contenteditable=true] details>summary:before
-}
+.post-content details>summary:before, [contenteditable=true] details>summary:before { display: none !important; }
+
 .insta-post[open] .insta-summary { 
   border-bottom-left-radius: 0 !important; border-bottom-right-radius: 0 !important; 
 }
 .insta-summary::-webkit-details-marker, .insta-summary::before { display: none !important; }
-.insta-post .image-number-badge { display: none !important; }
+[class*="insta"] .image-number-badge { display: none !important; }
 
 .heart-icon::before, .bubble-icon::before, .airplain-icon::before, .bookmark-icon::before {
   content: '' !important;
@@ -497,6 +560,29 @@ const baseStaticCss = `
 .bubble-icon::before { background-image: url('https://i.postimg.cc/tJJZYFWk/message-circle.png') !important; }
 .airplain-icon::before { background-image: url('https://i.postimg.cc/VvvrdXnF/send.png') !important; }
 .bookmark-icon::before { background-image: url('https://i.postimg.cc/J00DGjZq/bookmark.png') !important; }
+
+.img-spoiler-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 10 !important;
+  display: block !important;
+}
+.img-spoiler-overlay:not(.revealed),
+.img-spoiler-overlay:not(.revealed):hover {
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  background-color: transparent !important;
+  color: transparent !important;
+}
+.img-spoiler-overlay:not(.revealed)
+.img-spoiler-overlay.revealed,
+[class*="insta"] .spoiler.revealed,
+[class*="insta"] [data-spoiler="true"].revealed {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-color: transparent !important;
+  pointer-events: none !important;
+}
 `;
  
 const styleEl = document.createElement('style');
@@ -522,6 +608,127 @@ function getCurrentTimeStr() {
     const displayHours = hours % 12 || 12;
     return `${ampm} ${displayHours}:${minutes}`;
 }
+
+// ----------------------------------------
+// 프로필
+// ----------------------------------------
+function buildGridMarkup(post) {
+    const pid = 'g' + Math.random().toString(36).substr(2, 6);
+    const images = (post.images || '').split('\n').map(u => u.trim()).filter(u => u !== '').map(url => {
+        const isSpoiler = url.startsWith('[') && url.endsWith(']');
+        return { url: isSpoiler ? url.slice(1, -1) : url, isSpoiler };
+    });
+    
+    const postCount = images.length;
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const date = now.getDate();
+
+    const username = (post.username || '').trim() || 'noname';
+    const caption = (post.caption || '').trim();
+    const tags = (post.tags || '').trim();
+    let profilePic = (post.profile || '').trim();
+    if (!profilePic && postCount > 0) profilePic = images[0].url;
+
+    const profileImgTag = profilePic
+        ? `<img src="${profilePic}" alt="profile" style="width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important; aspect-ratio: 1/1; margin: 0 !important;">`
+        : `<div style="width: 100% !important; height: 100% !important; background-color: #efefef !important;"></div>`;
+
+    let css = `
+#profile_${pid} {
+    width: 100% !important;
+    margin-bottom: 24px !important;
+    background: #ffffff !important;
+    border: 1px solid #dbdbdb !important;
+    border-radius: 24px !important;
+    overflow: hidden !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+}
+#wrap_${pid} {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 3px !important;
+    width: 100% !important;
+    background: #ffffff !important;
+}
+#wrap_${pid} .grid-item {
+    position: relative !important;
+    width: 100% !important;
+    display: block !important;
+}
+[class*="insta"] .image-number-wrapper {
+    display: block !important;
+    width: 100%;
+    text-align: center;
+}
+#wrap_${pid} img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+    aspect-ratio: 1/1;
+    margin: 0 !important;
+}
+`;
+    
+    let html = `\n  <!-- [프로필 피드: ${username}] -->\n`;
+    html += `  <div id="profile_${pid}" style="overflow: hidden !important;">\n`;
+    
+    html += `    <div style="display: flex !important; padding: 20px 20px 16px !important; align-items: center !important; gap: 20px !important;">\n`;
+    html += `      <div style="width: 66px !important; height: 66px !important; border-radius: 50% !important; overflow: hidden !important; flex-shrink: 0 !important; border: 1px solid #dbdbdb !important;">\n`;
+    html += `        ${profileImgTag}\n`;
+    html += `      </div>\n`;
+    html += `      <div style="flex: 1 !important;display: flex !important;justify-content: space-between !important;text-align: center !important;padding-right: 10px !important; width: calc(100% - 30px); max-width: 300px; margin-left: auto;">\n`;
+    html += `        <div><strong style="display: block !important; font-size: 16px !important; color: #262626 !important;">${postCount}</strong><span style="font-size: 13px !important; color: #262626 !important;">게시물</span></div>\n`;
+    html += `        <div><strong style="display: block !important; font-size: 16px !important; color: #262626 !important;">${month}</strong><span style="font-size: 13px !important; color: #262626 !important;">팔로워</span></div>\n`;
+    html += `        <div><strong style="display: block !important; font-size: 16px !important; color: #262626 !important;">${date}</strong><span style="font-size: 13px !important; color: #262626 !important;">팔로잉</span></div>\n`;
+    html += `      </div>\n`;
+    html += `    </div>\n`;
+
+    html += `    <div style="padding: 0 20px 16px !important; font-size: 14px !important; color: #262626 !important; line-height: 1.4 !important;">\n`;
+    html += `      <strong style="font-weight: 700 !important;">${username}</strong>\n`;
+    if (caption) {
+        html += `      <div style="margin-top: 4px !important; word-break: break-word !important; white-space: pre-line !important;">${caption}</div>\n`;
+    }
+    if (tags) {
+        html += `      <div style="color: #00376b !important; font-size: 13px !important; margin-top: 4px !important; word-break: break-word !important;">${tags}</div>\n`;
+    }
+    html += `    </div>\n`;
+
+    html += `    <div style="border-top: 1px solid #efefef !important; display: flex !important; justify-content: space-between !important; width:100%;">\n`;
+    html += `      <div style="width: calc(100% / 3); border-top: 1px solid #262626 !important; padding: 12px !important; margin-top: -1px !important; display: flex !important; align-items: center !important; height: 35px !important;">\n`;
+    html += `        <img src="https://i.postimg.cc/59TsTKt8/grid-3x3.png" style="margin: 0 auto">\n`;
+    html += `      </div>\n`;
+    html += `      <div style="width: calc(100% / 3); border-top: 1px solid transparent !important; padding: 12px !important; margin-top: -1px !important; display: flex !important; align-items: center !important; height: 35px !important;">\n`;
+    html += `        <img src="https://i.postimg.cc/4ykhbcJm/film.png" style="margin: 0 auto">\n`;
+    html += `      </div>\n`;
+    html += `      <div style="width: calc(100% / 3); border-top: 1px solid transparent !important; padding: 12px !important; margin-top: -1px !important; display: flex !important; align-items: center !important; height: 35px !important;">\n`;
+    html += `        <img src="https://i.postimg.cc/B6s0TZdp/contact.png" style="margin: 0 auto">\n`;
+    html += `      </div>\n`;
+    html += `    </div>\n`;
+    
+    html += `    <div id="wrap_${pid}">\n`;
+    if (postCount === 0) {
+        html += `      <div style="grid-column: 1 / -1 !important; padding: 50px !important; text-align: center !important; color: #8e8e8e !important; font-size: 14px !important; background: #fafafa !important;">이미지를 추가해주세요</div>\n`;
+    } else {
+        images.forEach((img, i) => {
+            html += `      <div class="grid-item">\n`;
+            html += `        <img src="${img.url}" alt="grid image ${i+1}">\n`;
+            if (img.isSpoiler) {
+                html += `        <span class="spoiler img-spoiler-overlay" data-spoiler="true"></span>\n`;
+            }
+            html += `      </div>\n`;
+        });
+    }
+    html += `    </div>\n`;
+    html += `  </div>\n`;
+    
+    return { css, html };
+}
+
+// ----------------------------------------
+// 포스팅
+// ----------------------------------------
 function buildPostMarkup(post) {
     const bg = "#ffffff";
     const text = "#262626";
@@ -536,12 +743,19 @@ function buildPostMarkup(post) {
     const time = (post.time || '').trim() || 'Just now';
     const caption = (post.caption || '').trim();
     const tags = (post.tags || '').trim();
-    const images = (post.images || '').split('\n').map(u => u.trim()).filter(u => u !== '');
+    const expanded = !!post.expanded;
+    const wrapTag = expanded ? 'div' : 'details';
+    const headTag = expanded ? 'div' : 'summary';
+    const headCursor = expanded ? 'default' : 'pointer';
+    const images = (post.images || '').split('\n').map(u => u.trim()).filter(u => u !== '').map(url => {
+        const isSpoiler = url.startsWith('[') && url.endsWith(']');
+        return { url: isSpoiler ? url.slice(1, -1) : url, isSpoiler };
+    });
     const n = images.length;
 
     let finalProfilePic = inputProfilePic;
     if (!finalProfilePic && n > 0) {
-        finalProfilePic = images[0];
+        finalProfilePic = images[0].url;
     }
 
     const profileImgTag = finalProfilePic
@@ -575,25 +789,25 @@ function buildPostMarkup(post) {
 
     let bodyHtml = '';
     bodyHtml += `\n  <!-- [포스트: ${username}] -->\n`;
-    bodyHtml += `  <details class="insta-post" style="background-color: ${bg} !important; border-radius: 24px !important; margin-bottom: 24px !important; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important; width: 100% !important; border: 1px solid ${border} !important; display: block !important;">\n`;
+    bodyHtml += `  <${wrapTag} class="insta-post"${expanded ? '' : ' open'} style="background-color: ${bg} !important; border-radius: 24px !important; margin-bottom: 24px !important; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important; width: 100% !important; border: 1px solid ${border} !important; display: block !important;">\n`;
 
-    bodyHtml += `    <summary class="insta-summary" style="border-radius: 24px !important; padding: 16px 20px !important; cursor: pointer !important; list-style: none !important; display: flex !important; align-items: center !important; justify-content: space-between !important; user-select: none !important; background-color: ${bg} !important; width: 100% !important; height: 72px !important; box-sizing: border-box !important;">\n`;
+    bodyHtml += `    <${headTag} class="insta-summary" style="border-radius: 24px !important; padding: 16px 20px !important; cursor: ${headCursor} !important; list-style: none !important; display: flex !important; align-items: center !important; justify-content: space-between !important; user-select: none !important; background-color: ${bg} !important; width: 100% !important; height: 72px !important; box-sizing: border-box !important;">\n`;
     bodyHtml += `      <div style="display: flex !important; align-items: center !important; gap: 12px !important;">\n`;
     bodyHtml += `        ${profileImgTag}\n`;
     bodyHtml += `        <div style="display: flex !important; flex-direction: row !important; align-items: center !important; gap: 10px !important;">\n`;
-    bodyHtml += `          <span style="font-weight: 700 !important; font-size: 15px !important; letter-spacing: 0.2px !important; color: ${text} !important; margin: 0 !important; line-height: 1 !important;">${username}</span>\n`;
-    bodyHtml += `          <span style="font-size: 13px !important; color: ${sub} !important; font-weight: 500 !important; margin: 0 !important; line-height: 1 !important;">${time}</span>\n`;
+    bodyHtml += `          <span style="font-weight: 700 !important; font-size: 14px !important; letter-spacing: 0.2px !important; color: ${text} !important; margin: 0 !important; line-height: 1 !important; white-space: nowrap;">${username}</span>\n`;
+    bodyHtml += `          <span style="font-size: 11px !important; color: ${sub} !important; font-weight: 500 !important; margin: 0 !important; line-height: 1 !important; white-space: nowrap; padding-top: 1px">${time}</span>\n`;
     bodyHtml += `        </div>\n`;
     bodyHtml += `      </div>\n`;
     bodyHtml += `      <div style="font-weight: bold !important; color: ${sub} !important; letter-spacing: 2px !important; font-size: 13px !important; margin-top: -3px !important;">•••</div>\n`;
-    bodyHtml += `    </summary>\n`;
+    bodyHtml += `    </${headTag}>\n`;
 
     bodyHtml += `    <div class="post-content" style="background-color: ${bg} !important; border-top: 1px solid ${border} !important; width: 100% !important; border-bottom-left-radius: 24px !important; border-bottom-right-radius: 24px !important;">\n`;
 
     bodyHtml += `      <div id="wrap_${pid}" style="display: grid !important; grid-template-columns: 1fr !important; grid-template-rows: 1fr !important; width: 100% !important; aspect-ratio: 1 / 1 !important; background: ${imgBg} !important; overflow: hidden !important;">\n`;
 
     if (n === 0) {
-        bodyHtml += `        <div style="grid-row: 1 !important; grid-column: 1 !important; width: 100% !important; height: 100% !important; display: flex !important; align-items: center !important; justify-content: center !important; color: ${sub} !important;">이미지를 추가해주세요</div>\n`;
+        bodyHtml += `        <div style="grid-row: 1 !important; grid-column: 1 !important; width: 100% !important; height: 100% !important; display: flex !important; align-items: center !important; justify-content: center !important; color: ${sub} !important;">NO IMAGE</div>\n`;
     } else {
         if (n > 1) {
             for (let i = 0; i < n; i++) {
@@ -610,9 +824,12 @@ function buildPostMarkup(post) {
         }
 
         bodyHtml += `        <div class="carousel-track" style="grid-row: 1 !important; grid-column: 1 !important; width: 100% !important; height: 100% !important; display: flex !important; margin: 0 !important; padding: 0 !important; transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;">\n`;
-        images.forEach((url, i) => {
-            bodyHtml += `          <div class="slide-unit" style="height: 100% !important; flex-shrink: 0 !important; display: block !important;">\n`;
-            bodyHtml += `            <img src="${url}" alt="post img ${i+1}" style="width: 100% !important; height: auto !important; aspect-ratio: 1 / 1 !important; object-fit: cover !important; display: block !important; margin: 0 !important; padding: 0 !important; border: none !important; border-radius: 0 !important;">\n`;
+        images.forEach((img, i) => {
+            bodyHtml += `          <div class="slide-unit" style="position: relative !important; height: 100% !important; flex-shrink: 0 !important; display: block !important;">\n`;
+            bodyHtml += `            <img src="${img.url}" alt="post img ${i+1}" style="width: 100% !important; height: auto !important; aspect-ratio: 1 / 1 !important; object-fit: cover !important; display: block !important; margin: 0 !important; padding: 0 !important; border: none !important; border-radius: 0 !important;">\n`;
+            if (img.isSpoiler) {
+                bodyHtml += `            <span class="spoiler img-spoiler-overlay" data-spoiler="true"></span>\n`;
+            }
             bodyHtml += `          </div>\n`;
         });
         bodyHtml += `        </div>\n`;
@@ -620,7 +837,7 @@ function buildPostMarkup(post) {
 
     bodyHtml += `      </div>\n`;
 
-    bodyHtml += `      <div style="padding: 16px 20px 20px !important; background-color: ${bg} !important; border-bottom-left-radius: 24px !important; border-bottom-right-radius: 24px !important; box-sizing: border-box !important;">\n`;
+    bodyHtml += `      <div style="padding: 16px 20px 20px !important; background-color: ${bg} !important; border-bottom-left-radius: 24px !important; border-bottom-right-radius: 24px !important; box-sizing: border-box !important; overflow: hidden !important;">\n`;
     bodyHtml += `        ${getSafeIcons(pid)}\n`;
 
     const formattedCaption = caption.replace(/\n/g, '<br>');
@@ -664,7 +881,7 @@ function buildPostMarkup(post) {
     bodyHtml += `        </div>\n`;
     bodyHtml += `      </div>\n`;
     bodyHtml += `    </div>\n`;
-    bodyHtml += `  </details>\n`;
+    bodyHtml += `  </${wrapTag}>\n`;
 
     return { css: dynamicStyles, html: bodyHtml };
 }
@@ -674,7 +891,7 @@ function generateFinalHtml() {
     let bodyHtml = `\n<div class="insta-gallery-container" style="width: 100%; max-width: 480px !important; margin: 0 auto !important; font-family: 'Pretendard', sans-serif !important; color: #262626 !important; box-sizing: border-box !important;">\n`;
 
     posts.forEach(post => {
-        const { css, html } = buildPostMarkup(post);
+        const { css, html } = post.type === 'grid' ? buildGridMarkup(post) : buildPostMarkup(post);
         dynamicStyles += css;
         bodyHtml += html;
     });
@@ -684,7 +901,7 @@ function generateFinalHtml() {
     return `<style>\n${dynamicStyles}\n</style>\n${bodyHtml}`;
 }
 
-const STORAGE_KEY = 'insta_feed_admin_v1';
+const STORAGE_KEY = 'insta_feed_admin_v3';
 let posts = [];
 let editingId = null;
 let lastCaption = '';
@@ -706,14 +923,16 @@ function renderFeed() {
     empty.style.display = posts.length === 0 ? 'flex' : 'none';
 
     posts.forEach(post => {
-        const { css, html } = buildPostMarkup(post);
-        const previewHtml = html.replace('<details class="insta-post"', '<details class="insta-post" open');
+        const isGrid = post.type === 'grid';
+        const { css, html } = isGrid ? buildGridMarkup(post) : buildPostMarkup(post);
+        
+        const previewHtml = isGrid ? html : html.replace('<details class="insta-post"', '<details class="insta-post" open');
 
         const card = document.createElement('div');
         card.className = 'post-card';
         card.dataset.id = post.id;
         card.innerHTML = `
-            <button type="button" class="post-menu-btn" onclick="toggleMenu(event,'${post.id}')" aria-label="옵션"></button>
+            <button type="button" class="post-menu-btn${isGrid ? ' post-menu-btn--dots' : ''}" onclick="toggleMenu(event,'${post.id}')" aria-label="옵션"></button>
             <div class="post-menu-dropdown" id="menu-${post.id}">
                 <button type="button" onclick="editPost('${post.id}')">${iconEdit} 수정</button>
                 <button type="button" class="danger" onclick="deletePost('${post.id}')">${iconTrash} 삭제</button>
@@ -742,6 +961,12 @@ document.addEventListener('click', (e) => {
     }
 });
 
+function toggleFields() {
+    const isGrid = document.getElementById('type-grid').checked;
+    document.getElementById('postOnlyFieldsTop').style.display = isGrid ? 'none' : 'flex';
+    document.getElementById('captionLabel').textContent = isGrid ? '바이오' : '본문 텍스트';
+}
+
 function editPost(id) {
     document.querySelectorAll('.post-menu-dropdown.open').forEach(d => d.classList.remove('open'));
     const post = posts.find(p => p.id === id);
@@ -761,16 +986,25 @@ function openModal(post) {
     document.getElementById('modalTitle').textContent = post ? '게시물 수정' : '새 게시물';
     document.getElementById('submitBtn').textContent = post ? '수정 완료' : '등록하기';
 
-    document.getElementById('f-username').value = post ? post.username : 'noname';
-    document.getElementById('f-profile').value = post ? post.profile : '';
-    document.getElementById('f-time').value = post ? post.time : getCurrentTimeStr();
-    document.getElementById('f-images').value = post ? post.images : '';
-    document.getElementById('f-caption').value = post ? post.caption : lastCaption;
-    document.getElementById('f-tags').value = post ? post.tags : lastTags;
+    const type = post ? (post.type || 'post') : 'post';
+    document.getElementById(type === 'grid' ? 'type-grid' : 'type-post').checked = true;
+    
+    document.getElementById('f-username').value = post ? (post.username || '') : 'noname';
+    document.getElementById('f-profile').value = post ? (post.profile || '') : '';
+    document.getElementById('f-time').value = post ? (post.time || '') : getCurrentTimeStr();
+    document.getElementById('f-images').value = post ? (post.images || '') : '';
+    document.getElementById('f-caption').value = post ? (post.caption || '') : lastCaption;
+    document.getElementById('f-tags').value = post ? (post.tags || '') : lastTags;
+    document.getElementById('f-expanded').checked = post ? !!post.expanded : false;
+
+    toggleFields();
 
     document.getElementById('modalOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
-    setTimeout(() => document.getElementById('f-username').focus(), 100);
+    
+    setTimeout(() => {
+        document.getElementById('f-username').focus();
+    }, 100);
 }
 
 function closeModal() {
@@ -781,17 +1015,23 @@ function closeModal() {
 
 function handleSubmit(e) {
     e.preventDefault();
+    const isGrid = document.getElementById('type-grid').checked;
+    
     const data = {
+        type: isGrid ? 'grid' : 'post',
         username: document.getElementById('f-username').value.trim(),
         profile: document.getElementById('f-profile').value.trim(),
         time: document.getElementById('f-time').value.trim(),
         images: document.getElementById('f-images').value,
         caption: document.getElementById('f-caption').value.trim(),
-        tags: document.getElementById('f-tags').value.trim()
+        tags: document.getElementById('f-tags').value.trim(),
+        expanded: document.getElementById('f-expanded').checked
     };
 
-    lastCaption = data.caption;
-    lastTags = data.tags;
+    if (!isGrid) {
+        lastCaption = data.caption;
+        lastTags = data.tags;
+    }
 
     if (editingId) {
         const idx = posts.findIndex(p => p.id === editingId);
@@ -868,15 +1108,6 @@ function loadState() {
 
 document.getElementById('cameraBtn').addEventListener('click', () => openModal());
 document.getElementById('addBtn').addEventListener('click', () => openModal());
-document.getElementById('modalOverlay').addEventListener('click', (e) => {
-    if (e.target.id === 'modalOverlay') closeModal();
-});
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        closeModal();
-        document.querySelectorAll('.post-menu-dropdown.open').forEach(d => d.classList.remove('open'));
-    }
-});
 
 window.addEventListener('DOMContentLoaded', loadState);
 </script>
