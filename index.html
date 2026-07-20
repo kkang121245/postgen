@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인스타 글꾸 생성기</title>
+    <style>
+        body { background-color: #f4f5f0; color: #333; padding: 40px 20px; margin: 0; }
+        .app-container { max-width: 900px; margin: 0 auto; background: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        h1 { text-align: center; margin-bottom: 10px; font-weight: 700; color: #262626; }
+        .description { text-align: center; color: #8e8e8e; margin-bottom: 30px; line-height: 1.6; word-break: keep-all; }
+        
+        .global-settings { background: #fafafa; border: 1px solid #dbdbdb; padding: 20px; border-radius: 12px; margin-bottom: 30px; }
+        .global-settings h3 { margin: 0 0 16px 0; font-size: 16px; color: #262626; }
+        
+        .form-row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 13px; font-weight: 600; color: #555; }
+        
+        input[type="text"], textarea { 
+            padding: 10px 14px; border: 1px solid #dbdbdb; border-radius: 8px; font-size: 14px; 
+            font-family: inherit; outline: none; transition: border-color 0.2s; background: #fff;
+            width: 100%; box-sizing: border-box;
+        }
+        input[type="text"]:focus, textarea:focus { border-color: #262626; }
+        
+        .group-box { border: 1px solid #dbdbdb; padding: 24px; border-radius: 16px; margin-bottom: 24px; background: #fafafa; transition: border-color 0.2s; }
+        .group-box:hover { border-color: #262626; }
+        .url-textarea { height: 80px; resize: vertical; font-family: monospace; }
+        
+        .delete-btn { 
+            background: none; color: #ed4956; border: 1px solid #ed4956; padding: 8px 16px; 
+            border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; align-self: flex-start;
+        }
+        .delete-btn:hover { background: #ed4956; color: #fff; }
+        
+        .actions { display: flex; justify-content: center; gap: 12px; margin: 40px 0; }
+        .btn { background: #0095f6; color: #fff; padding: 14px 28px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .btn:hover { background: #0081d6; }
+        .btn-outline { background: #fff; color: #262626; border: 1px solid #dbdbdb; }
+        .btn-outline:hover { background: #fafafa; }
+        
+        #output-area { margin-top: 40px; border-top: 1px solid #dbdbdb; padding-top: 40px; display: none; }
+        .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        #code-output { width: 100%; height: 300px; padding: 16px; border: 1px solid #dbdbdb; border-radius: 10px; font-family: monospace; box-sizing: border-box; background: #fafafa; resize: vertical; font-size: 13px; white-space: pre; outline: none;}
+        
+        .preview-section { margin-top: 40px; }
+        .preview-container { padding: 40px 20px; border-radius: 20px; background: #f0f0f0; display: flex; flex-direction: column; align-items: center; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <h1>인스타 글꾸 생성기</h1>
+        <p class="description">
+            이미지들을 인스타 포스트 스타일로 예쁘게!
+        </p>
+        
+        <div class="global-settings">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>⚙️ 공통 설정</h3>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>기본 본문 텍스트</label>
+                    <input type="text" id="global-caption" placeholder="공통으로 들어갈 텍스트 입력">
+                </div>
+                <div class="form-group">
+                    <label>기본 해시태그</label>
+                    <input type="text" id="global-tags" placeholder="#hashtag #공통">
+                </div>
+            </div>
+        </div>
+        
+        <div id="groups-container"></div>
+        
+        <div class="actions">
+            <button class="btn btn-outline" onclick="addGroup()">+ 포스트 추가</button>
+            <button class="btn" onclick="generateCode()">생성</button>
+            <button class="btn btn-outline" style="color:#ed4956; border-color:#ed4956;" onclick="resetAll()">전체 초기화</button>
+        </div>
+        
+        <div id="output-area">
+            <div class="output-header">
+                <button class="btn" style="padding: 8px 16px; font-size: 14px; background: #262626;" onclick="copyCode()">코드 복사하기</button>
+            </div>
+            <textarea id="code-output" readonly></textarea>
+            
+            <div class="preview-section">
+                <h3 style="color: #262626; margin-bottom: 16px;">미리보기</h3>
+                <div class="preview-container" id="preview-box"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const baseStaticCss = `
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
+.insta-gallery-container * { box-sizing: border-box !important; }
+
+.insta-post {width: 100%; max-width48px;}
+.insta-post[open] .insta-summary { 
+  border-bottom-left-radius: 0 !important; border-bottom-right-radius: 0 !important; 
+}
+.insta-summary::-webkit-details-marker, .insta-summary::before { display: none !important; }
+.insta-post .image-number-badge { display: none !important; }
+
+.heart-icon::before, .bubble-icon::before, .airplain-icon::before, .bookmark-icon::before {
+  content: '' !important;
+  display: block !important;
+  width: 24px !important;
+  height: 24px !important;
+  background-size: 24px 24px !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+}
+
+.heart-icon:active::before { background-image: url('https://i.postimg.cc/yNwsF9My/red-heart.png') !important; }
+.bubble-icon::before { background-image: url('https://i.postimg.cc/tJJZYFWk/message-circle.png') !important; }
+.airplain-icon::before { background-image: url('https://i.postimg.cc/VvvrdXnF/send.png') !important; }
+.bookmark-icon::before { background-image: url('https://i.postimg.cc/J00DGjZq/bookmark.png') !important; }
+
+.action-icon { transition: transform 0.2s !important; transform: scale(0.75) }
+.heart-icon::before { background: url('https://i.postimg.cc/Fzzd703V/heart.png') !important; }
+.heart-icon:active::before { background: url('https://i.postimg.cc/yNwsF9My/red-heart.png') !important; }
+.bubble-icon::before { background: url('https://i.postimg.cc/tJJZYFWk/message-circle.png') !important; }
+.airplain-icon::before { background: url('https://i.postimg.cc/VvvrdXnF/send.png') !important; }
+.bookmark-icon::before { background: url('https://i.postimg.cc/J00DGjZq/bookmark.png') !important; }
+`;
+
+        const getSafeIcons = (pid) => `
+            <input type="checkbox" id="${pid}_like" style="display:none !important;">
+            <div class="action-bar" style="display: flex !important; justify-content: space-between !important; margin-bottom: 14px !important; user-select: none !important; line-height: 1 !important; align-items: center !important;">
+              <div class="action-left" style="display: flex !important; gap: 16px !important;">
+                <label for="${pid}_like" class="action-icon heart-icon" style="cursor: pointer !important; color: #262626 !important; display: inline-block !important; width: 24px !important; height: 24px !important;"></label>
+                <span class="action-icon bubble-icon" style="cursor: pointer !important; color: #262626 !important; display: inline-block !important; width: 24px !important; height: 24px !important;"></span>
+                <span class="action-icon airplain-icon" style="cursor: pointer !important; color: #262626 !important; display: inline-block !important; width: 24px !important; height: 24px !important;"></span>
+              </div>
+              <span class="action-icon bookmark-icon" style="cursor: pointer !important; color: #262626 !important; display: inline-block !important; width: 24px !important; height: 24px !important;"></span>
+            </div>`;
+
+        let postCount = 0;
+
+        function getCurrentTimeStr() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? '오후' : '오전';
+            const displayHours = hours % 12 || 12;
+            return `${ampm} ${displayHours}:${minutes}`;
+        }
+
+        function addGroup(saved) {
+            postCount++;
+            
+            const defaultCaption = saved ? saved.caption : document.getElementById('global-caption').value;
+            const defaultTags = saved ? saved.tags : document.getElementById('global-tags').value;
+            const currentTime = saved ? saved.time : getCurrentTimeStr();
+            const username = saved ? saved.username : 'noname';
+            const profile = saved ? saved.profile : '';
+            const images = saved ? saved.images : '';
+
+            const container = document.getElementById('groups-container');
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'group-box';
+            groupDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+                    <h4 style="margin:0; color: #262626;">포스트 #${postCount}</h4>
+                    <button class="delete-btn" onclick="this.parentElement.parentElement.remove(); saveState();">삭제</button>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>이름</label>
+                        <input type="text" class="input-username" value="${username}" placeholder="예: noname">
+                    </div>
+                    <div class="form-group">
+                        <label>프로필 사진 URL (비워두면 첫 번째 사진 사용)</label>
+                        <input type="text" class="input-profile" value="${profile}" placeholder="비워두면 첫 번째 사진이 커버로 지정됩니다.">
+                    </div>
+                    <div class="form-group">
+                        <label>작성 시간</label>
+                        <input type="text" class="input-time" value="${currentTime}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>이미지 주소 (엔터로 구분)</label>
+                        <textarea class="url-textarea input-images" placeholder="https://example.com/img1.jpg&#10;https://example.com/img2.jpg">${images}</textarea>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>본문 텍스트</label>
+                        <input type="text" class="input-caption" value="${defaultCaption}" placeholder="본문 내용 입력">
+                    </div>
+                    <div class="form-group">
+                        <label>해시태그</label>
+                        <input type="text" class="input-tags" value="${defaultTags}" placeholder="#태그">
+                    </div>
+                </div>
+            `;
+            container.appendChild(groupDiv);
+            saveState();
+        }
+
+        const STORAGE_KEY = 'insta_glokku_state_v1';
+
+        function saveState() {
+            const state = {
+                globalCaption: document.getElementById('global-caption').value,
+                globalTags: document.getElementById('global-tags').value,
+                groups: []
+            };
+            document.querySelectorAll('.group-box').forEach(group => {
+                state.groups.push({
+                    username: group.querySelector('.input-username').value,
+                    profile: group.querySelector('.input-profile').value,
+                    time: group.querySelector('.input-time').value,
+                    images: group.querySelector('.input-images').value,
+                    caption: group.querySelector('.input-caption').value,
+                    tags: group.querySelector('.input-tags').value
+                });
+            });
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (e) {
+                console.warn('저장 실패:', e);
+            }
+        }
+
+        function loadState() {
+            let state = null;
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) state = JSON.parse(raw);
+            } catch (e) {
+                console.warn('불러오기 실패:', e);
+            }
+
+            if (!state || !state.groups || state.groups.length === 0) {
+                addGroup();
+                return;
+            }
+
+            document.getElementById('global-caption').value = state.globalCaption || '';
+            document.getElementById('global-tags').value = state.globalTags || '';
+
+            state.groups.forEach(g => addGroup(g));
+        }
+
+        function resetAll() {
+            if (!confirm('저장된 모든 내용을 삭제할까요? 이 작업은 되돌릴 수 없습니다.')) return;
+            localStorage.removeItem(STORAGE_KEY);
+            document.getElementById('groups-container').innerHTML = '';
+            document.getElementById('global-caption').value = '';
+            document.getElementById('global-tags').value = '';
+            postCount = 0;
+            addGroup();
+        }
+
+        function generateCode() {
+            const bg = "#ffffff";
+            const text = "#262626";
+            const sub = "#8e8e8e";
+            const border = "#dbdbdb";
+            const imgBg = "#efefef";
+
+            let dynamicStyles = baseStaticCss;
+            let bodyHtml = `\n<div class="insta-gallery-container" style="width: 100%; max-width: 480px !important; margin: 0 auto !important; font-family: 'Pretendard', sans-serif !important; color: ${text} !important; box-sizing: border-box !important;">\n`;
+            
+            const groups = document.querySelectorAll('.group-box');
+            
+            groups.forEach((group, index) => {
+                const pid = 'p' + Math.random().toString(36).substr(2, 6);
+                
+                const username = group.querySelector('.input-username').value.trim() || 'user';
+                const inputProfilePic = group.querySelector('.input-profile').value.trim();
+                const time = group.querySelector('.input-time').value.trim() || 'Just now';
+                const caption = group.querySelector('.input-caption').value.trim();
+                const tags = group.querySelector('.input-tags').value.trim();
+                const images = group.querySelector('.input-images').value.split('\n').map(u => u.trim()).filter(u => u !== '');
+                const n = images.length;
+                
+                let finalProfilePic = inputProfilePic;
+                if (!finalProfilePic && n > 0) {
+                    finalProfilePic = images[0];
+                }
+
+                const profileImgTag = finalProfilePic 
+                    ? `<img src="${finalProfilePic}" alt="profile" style="width: 40px !important; height: 40px !important; min-width: 40px !important; max-height: 40px !important; border-radius: 50% !important; background-color: ${border} !important; object-fit: cover !important; border: 1px solid ${border} !important; display: block !important; margin: 0 !important; flex-shrink: 0 !important;">`
+                    : `<div style="width: 40px !important; height: 40px !important; min-width: 40px !important; border-radius: 50% !important; background-color: ${border} !important; border: 1px solid ${border} !important; display: block !important; margin: 0 !important; flex-shrink: 0 !important;"></div>`;
+
+                dynamicStyles += `#${pid}_like:checked ~ .action-bar .heart-icon::before { background: url('https://i.postimg.cc/yNwsF9My/red-heart.png') !important; }\n`;
+
+                if (n > 1) {
+                    dynamicStyles += `
+#wrap_${pid} .carousel-track { width: ${n * 100}% !important; }
+#wrap_${pid} .slide-unit { width: 100% !important; }
+#wrap_${pid} .nav-L, #wrap_${pid} .nav-R { display: none !important; }
+`;
+                    for (let i = 0; i < n; i++) {
+                        dynamicStyles += `#${pid}_s${i}:checked ~ .carousel-track { transform: translateX(-${100 * i}%) !important; }\n`;
+                        if (i > 0) {
+                            dynamicStyles += `#${pid}_s${i}:checked ~ .nav-L.to_s${i-1} { display: flex !important; }\n`;
+                        }
+                        if (i < n - 1) {
+                            dynamicStyles += `#${pid}_s${i}:checked ~ .nav-R.to_s${i+1} { display: flex !important; }\n`;
+                        }
+                    }
+                } else {
+                    dynamicStyles += `
+#wrap_${pid} .carousel-track { width: 100% !important; }
+#wrap_${pid} .slide-unit { width: 100% !important; }
+`;
+                }
+
+                bodyHtml += `\n  <!-- [포스트: ${username}] -->\n`;
+                bodyHtml += `  <details class="insta-post" style="background-color: ${bg} !important; border-radius: 24px !important; margin-bottom: 24px !important; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important; width: 100% !important; border: 1px solid ${border} !important; display: block !important;">\n`;
+                
+                bodyHtml += `    <summary class="insta-summary" style="border-radius: 24px !important; padding: 16px 20px !important; cursor: pointer !important; list-style: none !important; display: flex !important; align-items: center !important; justify-content: space-between !important; user-select: none !important; background-color: ${bg} !important; width: 100% !important; height: 72px !important; box-sizing: border-box !important;">\n`;
+                bodyHtml += `      <div style="display: flex !important; align-items: center !important; gap: 12px !important;">\n`;
+                bodyHtml += `        ${profileImgTag}\n`;
+                bodyHtml += `        <div style="display: flex !important; flex-direction: row !important; align-items: center !important; gap: 10px !important;">\n`;
+                bodyHtml += `          <span style="font-weight: 700 !important; font-size: 15px !important; letter-spacing: 0.2px !important; color: ${text} !important; margin: 0 !important; line-height: 1 !important;">${username}</span>\n`;
+                bodyHtml += `          <span style="font-size: 13px !important; color: ${sub} !important; font-weight: 500 !important; margin: 0 !important; line-height: 1 !important;">${time}</span>\n`;
+                bodyHtml += `        </div>\n`;
+                bodyHtml += `      </div>\n`;
+                bodyHtml += `      <div style="font-weight: bold !important; color: ${sub} !important; letter-spacing: 2px !important; font-size: 18px !important; margin-top: -8px !important;">•••</div>\n`;
+                bodyHtml += `    </summary>\n`;
+                
+                bodyHtml += `    <div class="post-content" style="background-color: ${bg} !important; border-top: 1px solid ${border} !important; width: 100% !important; border-bottom-left-radius: 24px !important; border-bottom-right-radius: 24px !important;">\n`;
+                
+                bodyHtml += `      <div id="wrap_${pid}" style="display: grid !important; grid-template-columns: 1fr !important; grid-template-rows: 1fr !important; width: 100% !important; aspect-ratio: 1 / 1 !important; background: ${imgBg} !important; overflow: hidden !important;">\n`;
+                
+                if (n === 0) {
+                    bodyHtml += `        <div style="grid-row: 1 !important; grid-column: 1 !important; width: 100% !important; height: 100% !important; display: flex !important; align-items: center !important; justify-content: center !important; color: ${sub} !important;">이미지를 추가해주세요</div>\n`;
+                } else {
+                    if (n > 1) {
+                        for (let i = 0; i < n; i++) {
+                            bodyHtml += `        <input type="radio" name="grp_${pid}" id="${pid}_s${i}" ${i === 0 ? 'checked' : ''} style="display:none !important;">\n`;
+                        }
+                        
+                        for (let i = 0; i < n; i++) {
+                            if (i > 0) {
+                                bodyHtml += `        <label for="${pid}_s${i-1}" class="nav-L to_s${i-1}" style="grid-row: 1 !important; grid-column: 1 !important; align-self: center !important; justify-self: start !important; margin-left: 12px !important; width: 30px !important; height: 30px !important; align-items: center !important; justify-content: center !important; background: rgba(255,255,255,0.9) !important; border-radius: 50% !important; color: #333 !important; font-size: 16px !important; cursor: pointer !important; z-index: 10 !important; box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;">❮</label>\n`;
+                            }
+                            if (i < n - 1) {
+                                bodyHtml += `        <label for="${pid}_s${i+1}" class="nav-R to_s${i+1}" style="grid-row: 1 !important; grid-column: 1 !important; align-self: center !important; justify-self: end !important; margin-right: 12px !important; width: 30px !important; height: 30px !important; align-items: center !important; justify-content: center !important; background: rgba(255,255,255,0.9) !important; border-radius: 50% !important; color: #333 !important; font-size: 16px !important; cursor: pointer !important; z-index: 10 !important; box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;">❯</label>\n`;
+                            }
+                        }
+                    }
+
+                    bodyHtml += `        <div class="carousel-track" style="grid-row: 1 !important; grid-column: 1 !important; width: 100% !important; height: 100% !important; display: flex !important; margin: 0 !important; padding: 0 !important; transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;">\n`;
+                    images.forEach((url, i) => {
+                        bodyHtml += `          <div class="slide-unit" style="height: 100% !important; flex-shrink: 0 !important; display: block !important;">\n`;
+                        bodyHtml += `            <img src="${url}" alt="post img ${i+1}" style="width: 100% !important; height: auto !important; aspect-ratio: 1 / 1 !important; object-fit: cover !important; display: block !important; margin: 0 !important; padding: 0 !important; border: none !important; border-radius: 0 !important;">\n`;
+                        bodyHtml += `          </div>\n`;
+                    });
+                    bodyHtml += `        </div>\n`;
+                }
+                
+                bodyHtml += `      </div>\n`;
+                
+                bodyHtml += `      <div style="padding: 16px 20px 20px !important; background-color: ${bg} !important; border-bottom-left-radius: 24px !important; border-bottom-right-radius: 24px !important; box-sizing: border-box !important;">\n`;
+                bodyHtml += `        ${getSafeIcons(pid)}\n`;
+                
+                bodyHtml += `        <div style="font-size: 14px !important; line-height: 1.5 !important; color: ${text} !important; margin: 0 !important;">\n`;
+                bodyHtml += `          <strong style="font-weight: 700 !important; margin-right: 6px !important;">${username}</strong> ${caption}\n`;
+                if (tags) {
+                    bodyHtml += `          <div style="color: ${sub} !important; font-size: 13px !important; margin-top: 6px !important;">${tags}</div>\n`;
+                }
+                bodyHtml += `        </div>\n`;
+                bodyHtml += `      </div>\n`;
+                bodyHtml += `    </div>\n`;
+                bodyHtml += `  </details>\n`;
+            });
+
+            bodyHtml += "\n</div>";
+            
+            const finalHtml = `<style>\n${dynamicStyles}\n</style>\n${bodyHtml}`;
+            
+            document.getElementById('code-output').value = finalHtml;
+            document.getElementById('preview-box').innerHTML = finalHtml;
+            document.getElementById('output-area').style.display = 'block';
+            document.getElementById('output-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function copyCode() {
+            const textarea = document.getElementById('code-output');
+            textarea.select();
+            document.execCommand('copy');
+            alert('코드가 클립보드에 복사되었습니다!');
+        }
+
+        document.addEventListener('input', (e) => {
+            if (e.target.matches('input[type="text"], textarea')) {
+                saveState();
+            }
+        });
+
+        window.onload = () => {
+            loadState();
+        };
+    </script>
+</body>
+</html>
