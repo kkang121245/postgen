@@ -965,6 +965,12 @@ function toggleFields() {
     const isGrid = document.getElementById('type-grid').checked;
     document.getElementById('postOnlyFieldsTop').style.display = isGrid ? 'none' : 'flex';
     document.getElementById('captionLabel').textContent = isGrid ? '바이오' : '본문 텍스트';
+
+    // 피드(grid) 탭일 때는 '펼쳐두기' 옵션을 숨김 처리
+    const expandedField = document.getElementById('f-expanded').closest('.field');
+    if (expandedField) {
+        expandedField.style.display = isGrid ? 'none' : 'flex';
+    }
 }
 
 function editPost(id) {
