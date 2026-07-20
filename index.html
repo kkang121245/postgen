@@ -699,9 +699,9 @@ function buildGridMarkup(post) {
     html += `    </div>\n`;
 
     html += `    <div style="padding: 0 20px 16px !important; font-size: 14px !important; color: #262626 !important; line-height: 1.4 !important;">\n`;
-    html += `      <strong style="font-weight: 700 !important;">${username}</strong>\n`;
+    html += `      <strong style="font-weight: 700 !important; color: #262626 !important;">${username}</strong>\n`;
     if (caption) {
-        html += `      <div style="margin-top: 4px !important; word-break: break-word !important; white-space: pre-line !important;">${caption}</div>\n`;
+        html += `      <div style="color: #262626 !important; margin-top: 4px !important; word-break: break-word !important; white-space: pre-line !important;">${caption}</div>\n`;
     }
     if (tags) {
         html += `      <div style="color: #00376b !important; font-size: 13px !important; margin-top: 4px !important; word-break: break-word !important;">${tags}</div>\n`;
@@ -869,13 +869,13 @@ function buildPostMarkup(post) {
         
         bodyHtml += `              <div class="cap-closed">\n`;
         bodyHtml += `                <div style="display: -webkit-box !important; -webkit-line-clamp: 1 !important; -webkit-box-orient: vertical !important; overflow: hidden !important; word-break: break-word !important;">\n`;
-        bodyHtml += `                  <strong style="font-weight: 700 !important; margin-right: 6px !important;">${username}</strong><span>${formattedCaption}</span>\n`;
+        bodyHtml += `                  <strong style="color: #262626 !important; font-weight: 700 !important; margin-right: 6px !important;">${username}</strong><span style="color: #262626 !important;">${formattedCaption}</span>\n`;
         bodyHtml += `                </div>\n`;
         bodyHtml += `                <div style="color: ${sub} !important; font-size: 13px !important; margin-top: 2px !important; font-weight: 500 !important; display: inline-block !important;">더보기</div>\n`;
         bodyHtml += `              </div>\n`;
 
         bodyHtml += `              <div class="cap-opened" style="word-break: break-word !important;">\n`;
-        bodyHtml += `                <strong style="font-weight: 700 !important; margin-right: 6px !important;">${username}</strong><span>${formattedCaption}</span>\n`;
+        bodyHtml += `                <strong style="font-weight: 700 !important; margin-right: 6px !important; color: #262626 !important;">${username}</strong><span style="color: #262626 !important;">${formattedCaption}</span>\n`;
         bodyHtml += `                <div style="color: ${sub} !important; font-size: 13px !important; margin-top: 4px !important; font-weight: 500 !important; display: inline-block !important;"> 접기</div>\n`;
         bodyHtml += `              </div>\n`;
         
@@ -883,7 +883,7 @@ function buildPostMarkup(post) {
         bodyHtml += `          </details>\n`;
     } else {
         bodyHtml += `          <div style="word-break: break-word !important;">\n`;
-        bodyHtml += `            <strong style="font-weight: 700 !important; margin-right: 6px !important;">${username}</strong><span>${formattedCaption}</span>\n`;
+        bodyHtml += `            <strong style="color: #262626 !important; font-weight: 700 !important; margin-right: 6px !important;">${username}</strong><span style="color: #262626 !important;">${formattedCaption}</span>\n`;
         bodyHtml += `          </div>\n`;
     }
 
