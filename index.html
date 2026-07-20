@@ -24,6 +24,52 @@
   --danger: #ef6d94;
   --card-bg: #ffffff;
   --shadow-soft: 0 14px 32px rgba(170, 140, 210, 0.16);
+  --page-bg:
+    radial-gradient(520px 380px at 8% 0%, rgba(255, 205, 225, 0.55), transparent 60%),
+    radial-gradient(560px 420px at 100% 12%, rgba(190, 175, 245, 0.5), transparent 60%),
+    radial-gradient(480px 420px at 92% 100%, rgba(180, 215, 250, 0.45), transparent 60%),
+    linear-gradient(160deg, #fdf1f6 0%, #f4eefb 50%, #eef2fc 100%);
+  --topbar-bg: rgba(255,255,255,0.65);
+  --surface: #ffffff;
+  --surface-soft: #fbf6fb;
+  --surface-soft-hover: #f6e9f3;
+  --dropdown-hover: #fbf3f8;
+  --empty-bg: rgba(255,255,255,0.55);
+  --empty-border: rgba(255,255,255,0.7);
+  --empty-color: #b3a9cf;
+  --empty-color-strong: #9c8fc0;
+  --modal-overlay-bg: rgba(60, 40, 70, 0.42);
+  --menu-hover-bg: rgba(179, 157, 219, 0.12);
+}
+
+html[data-theme="dark"]{  
+  --accent-a: #c988a3;
+  --accent-b: #8c7bac;
+  --accent-grad: linear-gradient(135deg, #5b5988, #885a5a);
+  --accent: #9a6482;
+  --ink: #f1edf9;
+  --sub: #9d92c0;
+  --border: #362f4d;
+  --danger: #ff7f9f;
+  --card-bg: #241f36;
+  --shadow-soft: 0 14px 32px rgba(0, 0, 0, 0.45);  
+  --shadow-soft-hover: 0 14px 32px rgba(51, 51, 51, 0.45);
+  --page-bg:
+    radial-gradient(520px 380px at 8% 0%, rgba(150, 70, 120, 0.28), transparent 60%),
+    radial-gradient(560px 420px at 100% 12%, rgba(100, 80, 170, 0.3), transparent 60%),
+    radial-gradient(480px 420px at 92% 100%, rgba(70, 100, 170, 0.25), transparent 60%),
+    linear-gradient(160deg, #120f1c 0%, #171326 50%, #10111c 100%);
+  --topbar-bg: rgba(24, 20, 36, 0.75);
+  --surface: #241f36;
+  --surface-soft: #2c2642;
+  --surface-soft-hover: #342c4d;
+  --dropdown-hover: #322a4a;
+  --empty-bg: rgba(255,255,255,0.04);
+  --empty-border: rgba(255,255,255,0.08);
+  --empty-color: #7b7098;
+  --empty-color-strong: #948aad;
+  --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+  --menu-hover-bg: rgba(179, 157, 219, 0.18);
 }
 
 *{ box-sizing: border-box; }
@@ -34,12 +80,9 @@ body{
   color: var(--ink);
   min-height: 100vh;
   -webkit-tap-highlight-color: transparent;
-  background:
-    radial-gradient(520px 380px at 8% 0%, rgba(255, 205, 225, 0.55), transparent 60%),
-    radial-gradient(560px 420px at 100% 12%, rgba(190, 175, 245, 0.5), transparent 60%),
-    radial-gradient(480px 420px at 92% 100%, rgba(180, 215, 250, 0.45), transparent 60%),
-    linear-gradient(160deg, #fdf1f6 0%, #f4eefb 50%, #eef2fc 100%);
+  background: var(--page-bg);
   background-attachment: fixed;
+  transition: background .25s ease, color .25s ease;
 }
 
 .site{
@@ -53,16 +96,17 @@ body{
   position: sticky;
   top: 0;
   z-index: 20;
-  background: rgba(255,255,255,0.65);
+  background: var(--topbar-bg);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.6);
+  border-bottom: 1px solid var(--border);
   box-shadow: 0 8px 24px rgba(170, 140, 210, 0.08);
   flex-shrink: 0;
+  transition: background .25s ease, border-color .25s ease;
 }
 .topbar-inner{
   width: 100%;
@@ -97,13 +141,13 @@ body{
   transition: background .15s ease, transform .15s ease;
   padding: 0;
 }
-.icon-btn:hover{ background: rgba(179, 157, 219, 0.12); }
+.icon-btn:hover{ background: var(--menu-hover-bg); }
 .icon-btn.accent{
   color: #fff;
   background: var(--accent-grad);
-  box-shadow: 0 6px 16px rgba(214, 137, 179, 0.35);
+  box-shadow: var(--shadow-soft);
 }
-.icon-btn.accent:hover{ transform: translateY(-1px) scale(1.04); box-shadow: 0 8px 20px rgba(214, 137, 179, 0.45); }
+.icon-btn.accent:hover{ transform: translateY(-1px) scale(1.04); box-shadow: var(--shadow-soft-hover); }
 
 .feed {
   flex: 1;
@@ -124,19 +168,19 @@ body{
   justify-content: center;
   text-align: center;
   padding: 70px 24px;
-  color: #b3a9cf;
+  color: var(--empty-color);
   gap: 14px;
-  background: rgba(255,255,255,0.55);
+  background: var(--empty-bg);
   border-radius: 28px;
-  border: 1px solid rgba(255,255,255,0.7);
+  border: 1px solid var(--empty-border);
 }
-.empty-state svg{ color: #cbb8e6; }
-.empty-state p{ margin: 0; font-size: 14px; font-weight: 600; color: #9c8fc0; }
+.empty-state svg{ color: var(--empty-color); }
+.empty-state p{ margin: 0; font-size: 14px; font-weight: 600; color: var(--empty-color-strong); }
 .empty-state .btn-primary{ margin-top: 4px; }
 
 .post-card{
   position: relative;
-  filter: drop-shadow(0 10px 26px rgba(180, 155, 220, 0.16));
+  filter: drop-shadow(var(--shadow-soft));
 }
 .insta-post {
   max-width: 100% !important;
@@ -172,10 +216,10 @@ body{
   top: 48px;
   right: 12px;
   min-width: 132px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: 0 16px 32px rgba(170, 140, 210, 0.22);
+  box-shadow: var(--shadow-soft);
   overflow: hidden;
   z-index: 7;
   display: none;
@@ -196,7 +240,7 @@ body{
   cursor: pointer;
   text-align: left;
 }
-.post-menu-dropdown button:hover{ background: #fbf3f8; }
+.post-menu-dropdown button:hover{ background: var(--dropdown-hover); }
 .post-menu-dropdown button.danger{ color: var(--danger); }
 .post-menu-dropdown button svg{ flex-shrink: 0; }
 
@@ -227,10 +271,10 @@ body{
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow: 0 10px 24px rgba(214, 137, 179, 0.35);
+  box-shadow: var(--shadow-soft);
   transition: transform .15s ease, box-shadow .15s ease;
 }
-.btn-copy:hover{ transform: translateY(-1px); box-shadow: 0 14px 30px rgba(214, 137, 179, 0.45); }
+.btn-copy:hover{ transform: translateY(-1px); box-shadow: var(--shadow-soft-hover); }
 .btn-copy:active{ transform: scale(0.98); }
 .btn-copy:disabled{ opacity: .35; cursor: not-allowed; box-shadow: none; transform: none; }
 .btn-reset-link{
@@ -261,7 +305,7 @@ body{
 }
 .btn-primary:hover{ transform: translateY(-1px); box-shadow: 0 10px 22px rgba(214, 137, 179, 0.4); }
 .btn-outline{
-  background: #fff;
+  background: var(--surface);
   color: var(--ink);
   border: 1.5px solid var(--border);
   padding: 12px 22px;
@@ -271,12 +315,12 @@ body{
   font-weight: 700;
   cursor: pointer;
 }
-.btn-outline:hover{ background: #fbf5fb; border-color: #e2c9e8; }
+.btn-outline:hover{ background: var(--surface-soft); border-color: var(--accent-b); }
 
 .modal-overlay{
   position: fixed;
   inset: 0;
-  background: rgba(60, 40, 70, 0.42);
+  background: var(--modal-overlay-bg);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: flex-end;
@@ -292,7 +336,7 @@ body{
   width: 100%;
   max-width: 460px;
   max-height: 90vh;
-  background: #fffdfd;
+  background: var(--card-bg);
   border-radius: 28px 28px 0 0;
   display: flex;
   flex-direction: column;
@@ -330,7 +374,7 @@ body{
 .type-toggle {
   display: flex;
   gap: 8px;
-  background: #fbf6fb;
+  background: var(--surface-soft);
   padding: 6px;
   border-radius: 16px;
   margin-bottom: 4px;
@@ -340,7 +384,7 @@ body{
   text-align: center;
   font-size: 14px;
   font-weight: 700;
-  color: #9385ab;
+  color: var(--sub);
   padding: 10px;
   border-radius: 12px;
   cursor: pointer;
@@ -349,7 +393,7 @@ body{
 }
 .type-toggle input { display: none; }
 .type-toggle input:checked + label {
-  background: #fff;
+  background: var(--card-bg);
   color: var(--accent);
   box-shadow: 0 4px 12px rgba(170, 140, 210, 0.15);
 }
@@ -359,7 +403,7 @@ body{
   gap: 16px;
 }
 .field{ display: flex; flex-direction: column; gap: 6px; }
-.field label{ font-size: 12.5px; font-weight: 700; color: #9385ab; }
+.field label{ font-size: 12.5px; font-weight: 700; color: var(--sub); }
 .field-row{ display: flex; gap: 8px; align-items: flex-end; }
 .field-row .field{ flex: 1; }
 input[type="text"], textarea{
@@ -370,20 +414,20 @@ input[type="text"], textarea{
   font-size: 14px;
   font-family: inherit;
   outline: none;
-  background: #fbf6fb;
+  background: var(--surface-soft);
   color: var(--ink);
   transition: border-color .15s ease, background .15s ease;
 }
 #postOnlyFieldsBottom {
   padding-bottom: 65px;
 }
-input[type="text"]:focus, textarea:focus{ border-color: var(--accent-b); background: #fff; }
+input[type="text"]:focus, textarea:focus{ border-color: var(--accent-b); background: var(--card-bg); }
 .images-textarea{ height: 84px; resize: vertical; font-family: 'SFMono-Regular', Menlo, monospace; font-size: 12.5px; }
 .btn-now{
   padding: 12px 14px;
   border-radius: 14px;
   border: 1.5px solid var(--border);
-  background: #fbf6fb;
+  background: var(--surface-soft);
   font-family: inherit;
   font-size: 13px;
   font-weight: 700;
@@ -391,7 +435,7 @@ input[type="text"]:focus, textarea:focus{ border-color: var(--accent-b); backgro
   cursor: pointer;
   white-space: nowrap;
 }
-.btn-now:hover{ background: #f6e9f3; }
+.btn-now:hover{ background: var(--surface-soft-hover); }
 .modal-actions{
   display: flex;
   gap: 10px;
@@ -442,8 +486,8 @@ input[type="text"]:focus, textarea:focus{ border-color: var(--accent-b); backgro
 
   <header class="topbar">
     <div class="topbar-inner">
-      <button type="button" class="icon-btn accent" id="cameraBtn" title="게시물 추가" aria-label="게시물 추가">
-        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.2"/></svg>
+      <button type="button" class="icon-btn accent" id="cameraBtn" title="다크 모드로 전환" aria-label="다크 모드로 전환">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>
       </button>
       <h1 class="topbar-title">Feed</h1>
       <button type="button" class="icon-btn accent" id="addBtn" title="게시물 추가" aria-label="게시물 추가">
@@ -568,15 +612,10 @@ const baseStaticCss = `
 }
  
 .action-icon { transition: transform 0.2s !important; transform: scale(0.75) }
-.heart-icon::before { background-image: url('https://i.postimg.cc/Fzzd703V/heart.png') !important; }
-.heart-icon:active::before { background-image: url('https://i.postimg.cc/yNwsF9My/red-heart.png') !important; }
-.bubble-icon::before { background-image: url('https://i.postimg.cc/tJJZYFWk/message-circle.png') !important; }
-.airplain-icon::before { background-image: url('https://i.postimg.cc/VvvrdXnF/send.png') !important; }
-.bookmark-icon::before { background-image: url('https://i.postimg.cc/J00DGjZq/bookmark.png') !important; }
 
 .img-spoiler-overlay {
   position: absolute !important;
-  inset: 0 !important;
+  inset: -1px !important;
   z-index: 10 !important;
   display: block !important;
 }
@@ -626,6 +665,7 @@ function getCurrentTimeStr() {
 // 프로필
 // ----------------------------------------
 function buildGridMarkup(post) {
+    const { bg, text, sub, border, imgBg, tag, noImageBg, iconGrid, iconFilm, iconContact } = POST_THEME[currentTheme] || POST_THEME.light;
     const pid = 'g' + Math.random().toString(36).substr(2, 6);
     const images = (post.images || '').split('\n').map(u => u.trim()).filter(u => u !== '').map(url => {
         const isSpoiler = url.startsWith('[') && url.endsWith(']');
@@ -645,14 +685,14 @@ function buildGridMarkup(post) {
 
     const profileImgTag = profilePic
         ? `<img src="${profilePic}" alt="profile" style="width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important; aspect-ratio: 1/1; margin: 0 !important;">`
-        : `<div style="width: 100% !important; height: 100% !important; background-color: #efefef !important;"></div>`;
+        : `<div style="width: 100% !important; height: 100% !important; background-color: ${imgBg} !important;"></div>`;
 
     let css = `
 #profile_${pid} {
     width: 100% !important;
     margin-bottom: 24px !important;
-    background: #ffffff !important;
-    border: 1px solid #dbdbdb !important;
+    background: ${bg} !important;
+    border: 1px solid ${border} !important;
     border-radius: 24px !important;
     overflow: hidden !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
@@ -662,7 +702,7 @@ function buildGridMarkup(post) {
     grid-template-columns: repeat(3, 1fr) !important;
     gap: 3px !important;
     width: 100% !important;
-    background: #ffffff !important;
+    background: ${bg} !important;
 }
 #wrap_${pid} .grid-item {
     position: relative !important;
@@ -688,35 +728,35 @@ function buildGridMarkup(post) {
     html += `  <div id="profile_${pid}" style="overflow: hidden !important;">\n`;
     
     html += `    <div style="display: flex !important; padding: 20px 20px 16px !important; align-items: center !important; gap: 20px !important;">\n`;
-    html += `      <div style="width: 66px !important; height: 66px !important; border-radius: 50% !important; overflow: hidden !important; flex-shrink: 0 !important; border: 1px solid #dbdbdb !important;">\n`;
+    html += `      <div style="width: 66px !important; height: 66px !important; border-radius: 50% !important; overflow: hidden !important; flex-shrink: 0 !important; border: 1px solid ${border} !important;">\n`;
     html += `        ${profileImgTag}\n`;
     html += `      </div>\n`;
     html += `      <div style="flex: 1 !important;display: flex !important;justify-content: space-between !important;text-align: center !important;padding-right: 10px !important; width: calc(100% - 30px); max-width: 300px; margin-left: auto;">\n`;
-    html += `        <div><strong style="display: block !important; font-size: 16px !important; color: #262626 !important;">${postCount}</strong><span style="font-size: 13px !important; color: #262626 !important;">게시물</span></div>\n`;
-    html += `        <div><strong style="display: block !important; font-size: 16px !important; color: #262626 !important;">${month}</strong><span style="font-size: 13px !important; color: #262626 !important;">팔로워</span></div>\n`;
-    html += `        <div><strong style="display: block !important; font-size: 16px !important; color: #262626 !important;">${date}</strong><span style="font-size: 13px !important; color: #262626 !important;">팔로잉</span></div>\n`;
+    html += `        <div><strong style="display: block !important; font-size: 16px !important; color: ${text} !important;">${postCount}</strong><span style="font-size: 13px !important; color: ${text} !important;">게시물</span></div>\n`;
+    html += `        <div><strong style="display: block !important; font-size: 16px !important; color: ${text} !important;">${month}</strong><span style="font-size: 13px !important; color: ${text} !important;">팔로워</span></div>\n`;
+    html += `        <div><strong style="display: block !important; font-size: 16px !important; color: ${text} !important;">${date}</strong><span style="font-size: 13px !important; color: ${text} !important;">팔로잉</span></div>\n`;
     html += `      </div>\n`;
     html += `    </div>\n`;
 
-    html += `    <div style="padding: 0 20px 16px !important; font-size: 14px !important; color: #262626 !important; line-height: 1.4 !important;">\n`;
-    html += `      <strong style="font-weight: 700 !important; color: #262626 !important;">${username}</strong>\n`;
+    html += `    <div style="padding: 0 20px 16px !important; font-size: 14px !important; color: ${text} !important; line-height: 1.4 !important;">\n`;
+    html += `      <strong style="font-weight: 700 !important; color: ${text} !important;">${username}</strong>\n`;
     if (caption) {
-        html += `      <div style="color: #262626 !important; margin-top: 4px !important; word-break: break-word !important; white-space: pre-line !important;">${caption}</div>\n`;
+        html += `      <div style="color: ${text} !important; margin-top: 4px !important; word-break: break-word !important; white-space: pre-line !important;">${caption}</div>\n`;
     }
     if (tags) {
-        html += `      <div style="color: #00376b !important; font-size: 13px !important; margin-top: 4px !important; word-break: break-word !important;">${tags}</div>\n`;
+        html += `      <div style="color: ${tag} !important; font-size: 13px !important; margin-top: 4px !important; word-break: break-word !important;">${tags}</div>\n`;
     }
     html += `    </div>\n`;
 
-    html += `    <div style="border-top: 1px solid #efefef !important; display: flex !important; justify-content: space-between !important; width:100%;">\n`;
-    html += `      <div style="width: calc(100% / 3); border-top: 1px solid #262626 !important; padding: 12px !important; margin-top: -1px !important; display: flex !important; align-items: center !important; height: 35px !important;">\n`;
-    html += `        <img src="https://i.postimg.cc/59TsTKt8/grid-3x3.png" style="margin: 0 auto">\n`;
+    html += `    <div style="border-top: 1px solid ${border} !important; display: flex !important; justify-content: space-between !important; width:100%;">\n`;
+    html += `      <div style="width: calc(100% / 3); border-top: 1px solid ${text} !important; padding: 12px !important; margin-top: -1px !important; display: flex !important; align-items: center !important; height: 35px !important;">\n`;
+    html += `        <img src="${iconGrid}" style="margin: 0 auto">\n`; // 동적 변수 적용
     html += `      </div>\n`;
     html += `      <div style="width: calc(100% / 3); border-top: 1px solid transparent !important; padding: 12px !important; margin-top: -1px !important; display: flex !important; align-items: center !important; height: 35px !important;">\n`;
-    html += `        <img src="https://i.postimg.cc/4ykhbcJm/film.png" style="margin: 0 auto">\n`;
+    html += `        <img src="${iconFilm}" style="margin: 0 auto">\n`; // 동적 변수 적용
     html += `      </div>\n`;
     html += `      <div style="width: calc(100% / 3); border-top: 1px solid transparent !important; padding: 12px !important; margin-top: -1px !important; display: flex !important; align-items: center !important; height: 35px !important;">\n`;
-    html += `        <img src="https://i.postimg.cc/B6s0TZdp/contact.png" style="margin: 0 auto">\n`;
+    html += `        <img src="${iconContact}" style="margin: 0 auto">\n`; // 동적 변수 적용
     html += `      </div>\n`;
     html += `    </div>\n`;
     
@@ -743,11 +783,7 @@ function buildGridMarkup(post) {
 // 포스팅
 // ----------------------------------------
 function buildPostMarkup(post) {
-    const bg = "#ffffff";
-    const text = "#262626";
-    const sub = "#8e8e8e";
-    const border = "#dbdbdb";
-    const imgBg = "#efefef";
+    const { bg, text, sub, border, imgBg, tag, noImageBg, iconHeart, iconBubble, iconAirplane, iconBookmark, iconHeartRed } = POST_THEME[currentTheme] || POST_THEME.light;
 
     const pid = 'p' + Math.random().toString(36).substr(2, 6);
 
@@ -776,7 +812,13 @@ function buildPostMarkup(post) {
         : `<div style="width: 40px !important; height: 40px !important; min-width: 40px !important; border-radius: 50% !important; background-color: ${border} !important; border: 1px solid ${border} !important; display: block !important; margin: 0 !important; flex-shrink: 0 !important;"></div>`;
 
     let dynamicStyles = '';
-    dynamicStyles += `#${pid}_like:checked ~ .action-bar .heart-icon::before { background-image: url('https://i.postimg.cc/yNwsF9My/red-heart.png') !important; }\n`;
+    dynamicStyles += `#${pid}_like ~ .action-bar .heart-icon::before { background-image: url('${iconHeart}') !important; }\n`;
+    dynamicStyles += `#${pid}_like ~ .action-bar .bubble-icon::before { background-image: url('${iconBubble}') !important; }\n`;
+    dynamicStyles += `#${pid}_like ~ .action-bar .airplain-icon::before { background-image: url('${iconAirplane}') !important; }\n`;
+    dynamicStyles += `#${pid}_like ~ .action-bar .bookmark-icon::before { background-image: url('${iconBookmark}') !important; }\n`;
+
+    dynamicStyles += `#${pid}_like:active ~ .action-bar .heart-icon::before { background-image: url('${iconHeartRed}') !important; }\n`;
+    dynamicStyles += `#${pid}_like:checked ~ .action-bar .heart-icon::before { background-image: url('${iconHeartRed}') !important; }\n`;
 
     if (n > 1) {
         dynamicStyles += `
@@ -869,13 +911,13 @@ function buildPostMarkup(post) {
         
         bodyHtml += `              <div class="cap-closed">\n`;
         bodyHtml += `                <div style="display: -webkit-box !important; -webkit-line-clamp: 1 !important; -webkit-box-orient: vertical !important; overflow: hidden !important; word-break: break-word !important;">\n`;
-        bodyHtml += `                  <strong style="color: #262626 !important; font-weight: 700 !important; margin-right: 6px !important;">${username}</strong><span style="color: #262626 !important;">${formattedCaption}</span>\n`;
+        bodyHtml += `                  <strong style="color: ${text} !important; font-weight: 700 !important; margin-right: 6px !important;">${username}</strong><span style="color: ${text} !important;">${formattedCaption}</span>\n`;
         bodyHtml += `                </div>\n`;
         bodyHtml += `                <div style="color: ${sub} !important; font-size: 13px !important; margin-top: 2px !important; font-weight: 500 !important; display: inline-block !important;">더보기</div>\n`;
         bodyHtml += `              </div>\n`;
 
         bodyHtml += `              <div class="cap-opened" style="word-break: break-word !important;">\n`;
-        bodyHtml += `                <strong style="font-weight: 700 !important; margin-right: 6px !important; color: #262626 !important;">${username}</strong><span style="color: #262626 !important;">${formattedCaption}</span>\n`;
+        bodyHtml += `                <strong style="font-weight: 700 !important; margin-right: 6px !important; color: ${text} !important;">${username}</strong><span style="color: ${text} !important;">${formattedCaption}</span>\n`;
         bodyHtml += `                <div style="color: ${sub} !important; font-size: 13px !important; margin-top: 4px !important; font-weight: 500 !important; display: inline-block !important;"> 접기</div>\n`;
         bodyHtml += `              </div>\n`;
         
@@ -883,12 +925,12 @@ function buildPostMarkup(post) {
         bodyHtml += `          </details>\n`;
     } else {
         bodyHtml += `          <div style="word-break: break-word !important;">\n`;
-        bodyHtml += `            <strong style="color: #262626 !important; font-weight: 700 !important; margin-right: 6px !important;">${username}</strong><span style="color: #262626 !important;">${formattedCaption}</span>\n`;
+        bodyHtml += `            <strong style="color: ${text} !important; font-weight: 700 !important; margin-right: 6px !important;">${username}</strong><span style="color: ${text} !important;">${formattedCaption}</span>\n`;
         bodyHtml += `          </div>\n`;
     }
 
     if (tags) {
-        bodyHtml += `          <div style="color: #00376b !important; font-size: 13px !important; margin-top: 6px !important; word-break: break-word !important;">${tags}</div>\n`;
+        bodyHtml += `          <div style="color: ${tag} !important; font-size: 13px !important; margin-top: 6px !important; word-break: break-word !important;">${tags}</div>\n`;
     }
 
     bodyHtml += `        </div>\n`;
@@ -915,13 +957,70 @@ function generateFinalHtml() {
 }
 
 const STORAGE_KEY = 'insta_feed_admin_v3';
+const THEME_KEY = 'insta_feed_theme_v1';
 let posts = [];
 let editingId = null;
 let lastCaption = '';
 let lastTags = '';
+let currentTheme = 'light';
 
 const iconEdit = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"/></svg>`;
 const iconTrash = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`;
+
+const iconMoonStar = `<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>`;
+const iconSun = `<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
+
+const POST_THEME = {
+    light: { bg: '#ffffff', text: '#262626', sub: '#8e8e8e', border: '#dbdbdb', imgBg: '#efefef', tag: '#00376b', noImageBg: '#fafafa',
+        iconHeart: 'https://i.postimg.cc/Fzzd703V/heart.png',
+        iconBubble: 'https://i.postimg.cc/tJJZYFWk/message-circle.png',
+        iconAirplane: 'https://i.postimg.cc/VvvrdXnF/send.png',
+        iconBookmark: 'https://i.postimg.cc/J00DGjZq/bookmark.png',
+        iconHeartRed: 'https://i.postimg.cc/yNwsF9My/red-heart.png',
+        iconGrid: 'https://i.postimg.cc/59TsTKt8/grid-3x3.png',
+        iconFilm: 'https://i.postimg.cc/4ykhbcJm/film.png',
+        iconContact: 'https://i.postimg.cc/B6s0TZdp/contact.png'
+     },
+    dark:  { bg: '#19191b', text: '#ececec', sub: '#a8a8a8', border: '#353540', imgBg: '#121212', tag: '#4db5ff', noImageBg: '#0a0a0a',
+        iconHeart: 'https://i.postimg.cc/L4LjHjFH/heart-d.png',
+        iconBubble: 'https://i.postimg.cc/wM8JXjLv/message-circle-d.png',
+        iconAirplane: 'https://i.postimg.cc/XvP9v8vK/send-d.png',
+        iconBookmark: 'https://i.postimg.cc/kgfx0936/bookmark-d.png',
+        iconHeartRed: 'https://i.postimg.cc/yNwsF9My/red-heart.png',
+        iconGrid: 'https://i.postimg.cc/Y9JNd3Kp/grid-3x3-d.png',
+        iconFilm: 'https://i.postimg.cc/XvYgqqcw/film-d.png',
+        iconContact: 'https://i.postimg.cc/KYG0TJF9/contact-d.png'
+     }
+};
+
+function applyTheme(theme) {
+    currentTheme = theme === 'dark' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+
+    const cameraBtn = document.getElementById('cameraBtn');
+    if (cameraBtn) {
+        cameraBtn.innerHTML = currentTheme === 'dark' ? iconSun : iconMoonStar;
+        const label = currentTheme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환';
+        cameraBtn.title = label;
+        cameraBtn.setAttribute('aria-label', label);
+    }
+
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) metaTheme.setAttribute('content', currentTheme === 'dark' ? '#171326' : '#ffffff');
+}
+
+function toggleTheme() {
+    const next = currentTheme === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    applyTheme(next);
+    renderFeed();
+}
+
+function loadTheme() {
+    let saved = 'light';
+    try { saved = localStorage.getItem(THEME_KEY) || 'light'; } catch (e) {}
+    applyTheme(saved);
+}
 
 function uid() {
     return 'post_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -979,7 +1078,6 @@ function toggleFields() {
     document.getElementById('postOnlyFieldsTop').style.display = isGrid ? 'none' : 'flex';
     document.getElementById('captionLabel').textContent = isGrid ? '바이오' : '본문 텍스트';
 
-    // 피드(grid) 탭일 때는 '펼쳐두기' 옵션을 숨김 처리
     const expandedField = document.getElementById('f-expanded').closest('.field');
     if (expandedField) {
         expandedField.style.display = isGrid ? 'none' : 'flex';
@@ -1125,10 +1223,13 @@ function loadState() {
     renderFeed();
 }
 
-document.getElementById('cameraBtn').addEventListener('click', () => openModal());
+document.getElementById('cameraBtn').addEventListener('click', () => toggleTheme());
 document.getElementById('addBtn').addEventListener('click', () => openModal());
 
-window.addEventListener('DOMContentLoaded', loadState);
+window.addEventListener('DOMContentLoaded', () => {
+  loadTheme();
+  loadState();
+});
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
