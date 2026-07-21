@@ -195,7 +195,7 @@ body{
   background: transparent;
   border-radius: 50%;
   cursor: pointer;
-  z-index: 6;
+  z-index: 30;
   transition: background .15s ease;
 }
 .post-menu-btn:hover{ background: rgba(0,0,0,0.06); }
@@ -221,7 +221,7 @@ body{
   border-radius: 16px;
   box-shadow: var(--shadow-soft);
   overflow: hidden;
-  z-index: 7;
+  z-index: 50;
   display: none;
 }
 .post-menu-dropdown.open{ display: block; }
@@ -406,7 +406,7 @@ body{
 .field label{ font-size: 12.5px; font-weight: 700; color: var(--sub); }
 .field-row{ display: flex; gap: 8px; align-items: flex-end; }
 .field-row .field{ flex: 1; }
-input[type="text"], textarea{
+input[type="text"], input[type="number"], textarea{
   width: 100%;
   padding: 12px 14px;
   border: 1.5px solid var(--border);
@@ -421,7 +421,7 @@ input[type="text"], textarea{
 #postOnlyFieldsBottom {
   padding-bottom: 65px;
 }
-input[type="text"]:focus, textarea:focus{ border-color: var(--accent-b); background: var(--card-bg); }
+input[type="text"]:focus, input[type="number"]:focus, textarea:focus{ border-color: var(--accent-b); background: var(--card-bg); }
 .images-textarea{ height: 84px; resize: vertical; font-family: 'SFMono-Regular', Menlo, monospace; font-size: 12.5px; }
 .btn-now{
   padding: 12px 14px;
@@ -529,6 +529,16 @@ input[type="text"]:focus, textarea:focus{ border-color: var(--accent-b); backgro
         
         <input type="radio" name="f-type" id="type-grid" value="grid" onchange="toggleFields()">
         <label for="type-grid">피드</label>
+
+        <input type="radio" name="f-type" id="type-story" value="story" onchange="toggleFields()">
+        <label for="type-story">스토리</label>
+      </div>
+
+      <div id="storyOnlyFields" class="dynamic-fields" style="display: none; padding-bottom: 4px;">
+        <div class="field">
+          <label>슬라이드 1장당 노출 시간 (초)</label>
+          <input type="number" id="f-story-time" value="4" min="1" max="60" placeholder="기본 4초">
+        </div>
       </div>
 
       <div class="field">        
@@ -588,6 +598,7 @@ const baseStaticCss = `
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
 .insta-gallery-container * { box-sizing: border-box !important; }
+.insta-gallery-container [class*="story-bottom-ui"] .image-number-wrapper { height: 32px !important; }
 
 .insta-post {width: 100%; max-width: 480px;}
 .insta-post details>summary { width: 100%; }
@@ -665,125 +676,7 @@ function getCurrentTimeStr() {
 }
 
 // ----------------------------------------
-// 프로필
-// ----------------------------------------
-function buildGridMarkup(post) {
-    const { bg, text, sub, border, imgBg, tag, noImageBg, iconGrid, iconFilm, iconContact } = POST_THEME[currentTheme] || POST_THEME.light;
-    const pid = 'g' + Math.random().toString(36).substr(2, 6);
-    const images = (post.images || '').split('\n').map(u => u.trim()).filter(u => u !== '').map(url => {
-        const isSpoiler = url.startsWith('[') && url.endsWith(']');
-        return { url: isSpoiler ? url.slice(1, -1) : url, isSpoiler };
-    });
-    
-    const postCount = images.length;
-    const now = new Date();
-    const month = now.getMonth() + 1;
-    const date = now.getDate();
-
-    const username = (post.username || '').trim() || 'noname';
-    const caption = (post.caption || '').trim();
-    const tags = (post.tags || '').trim();
-    let profilePic = (post.profile || '').trim();
-    if (!profilePic && postCount > 0) profilePic = images[0].url;
-
-    const profileImgTag = profilePic
-        ? `<img src="${profilePic}" alt="profile" style="width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important; aspect-ratio: 1/1; margin: 0 !important;">`
-        : `<div style="width: 100% !important; height: 100% !important; background-color: ${imgBg} !important;"></div>`;
-
-    let css = `
-#profile_${pid} {
-    width: 100% !important;
-    margin-bottom: 24px !important;
-    background: ${bg} !important;
-    border: 1px solid ${border} !important;
-    border-radius: 24px !important;
-    overflow: hidden !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
-}
-#wrap_${pid} {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 3px !important;
-    width: 100% !important;
-    background: ${bg} !important;
-}
-#wrap_${pid} .grid-item {
-    position: relative !important;
-    width: 100% !important;
-    display: block !important;
-}
-[class*="insta"] .image-number-wrapper {
-    display: block !important;
-    width: 100%;
-    text-align: center;
-}
-#wrap_${pid} img {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    display: block !important;
-    aspect-ratio: 1/1;
-    margin: 0 !important;
-}
-`;
-    
-    let html = `\n  <!-- [프로필 피드: ${username}] -->\n`;
-    html += `  <div id="profile_${pid}" style="overflow: hidden !important;">\n`;
-    
-    html += `    <div style="display: flex !important; padding: 20px 20px 16px !important; align-items: center !important; gap: 20px !important;">\n`;
-    html += `      <div style="width: 66px !important; height: 66px !important; border-radius: 50% !important; overflow: hidden !important; flex-shrink: 0 !important; border: 1px solid ${border} !important;">\n`;
-    html += `        ${profileImgTag}\n`;
-    html += `      </div>\n`;
-    html += `      <div style="flex: 1 !important;display: flex !important;justify-content: space-between !important;text-align: center !important;padding-right: 10px !important; width: calc(100% - 30px); max-width: 300px; margin-left: auto;">\n`;
-    html += `        <div><strong style="display: block !important; font-size: 16px !important; color: ${text} !important;">${postCount}</strong><span style="font-size: 13px !important; color: ${text} !important;">게시물</span></div>\n`;
-    html += `        <div><strong style="display: block !important; font-size: 16px !important; color: ${text} !important;">${month}</strong><span style="font-size: 13px !important; color: ${text} !important;">팔로워</span></div>\n`;
-    html += `        <div><strong style="display: block !important; font-size: 16px !important; color: ${text} !important;">${date}</strong><span style="font-size: 13px !important; color: ${text} !important;">팔로잉</span></div>\n`;
-    html += `      </div>\n`;
-    html += `    </div>\n`;
-
-    html += `    <div style="padding: 0 20px 16px !important; font-size: 14px !important; color: ${text} !important; line-height: 1.4 !important;">\n`;
-    html += `      <strong style="font-weight: 700 !important; color: ${text} !important;">${username}</strong>\n`;
-    if (caption) {
-        html += `      <div style="color: ${text} !important; margin-top: 4px !important; word-break: break-word !important; white-space: pre-line !important;">${caption}</div>\n`;
-    }
-    if (tags) {
-        html += `      <div style="color: ${tag} !important; font-size: 13px !important; margin-top: 4px !important; word-break: break-word !important;">${tags}</div>\n`;
-    }
-    html += `    </div>\n`;
-
-    html += `    <div style="border-top: 1px solid ${border} !important; display: flex !important; justify-content: space-between !important; width:100%;">\n`;
-    html += `      <div style="width: calc(100% / 3); border-top: 1px solid ${text} !important; padding: 12px !important; margin-top: -1px !important; display: flex !important; align-items: center !important; height: 35px !important;">\n`;
-    html += `        <img src="${iconGrid}" style="margin: 0 auto">\n`; // 동적 변수 적용
-    html += `      </div>\n`;
-    html += `      <div style="width: calc(100% / 3); border-top: 1px solid transparent !important; padding: 12px !important; margin-top: -1px !important; display: flex !important; align-items: center !important; height: 35px !important;">\n`;
-    html += `        <img src="${iconFilm}" style="margin: 0 auto">\n`; // 동적 변수 적용
-    html += `      </div>\n`;
-    html += `      <div style="width: calc(100% / 3); border-top: 1px solid transparent !important; padding: 12px !important; margin-top: -1px !important; display: flex !important; align-items: center !important; height: 35px !important;">\n`;
-    html += `        <img src="${iconContact}" style="margin: 0 auto">\n`; // 동적 변수 적용
-    html += `      </div>\n`;
-    html += `    </div>\n`;
-    
-    html += `    <div id="wrap_${pid}">\n`;
-    if (postCount === 0) {
-        html += `      <div style="grid-column: 1 / -1 !important; padding: 50px !important; text-align: center !important; color: #8e8e8e !important; font-size: 14px !important; background: #fafafa !important;">NO IMAGE</div>\n`;
-    } else {
-        images.forEach((img, i) => {
-            html += `      <div class="grid-item">\n`;
-            html += `        <img src="${img.url}" alt="grid image ${i+1}">\n`;
-            if (img.isSpoiler) {
-                html += `        <span class="spoiler img-spoiler-overlay" data-spoiler="true"></span>\n`;
-            }
-            html += `      </div>\n`;
-        });
-    }
-    html += `    </div>\n`;
-    html += `  </div>\n`;
-    
-    return { css, html };
-}
-
-// ----------------------------------------
-// 포스팅
+// 포스팅 (게시글)
 // ----------------------------------------
 function buildPostMarkup(post) {
     const { bg, text, sub, border, imgBg, tag, noImageBg, iconHeart, iconBubble, iconAirplane, iconBookmark, iconHeartRed } = POST_THEME[currentTheme] || POST_THEME.light;
@@ -944,14 +837,306 @@ function buildPostMarkup(post) {
     return { css: dynamicStyles, html: bodyHtml };
 }
 
+// ----------------------------------------
+// 프로필 (그리드)
+// ----------------------------------------
+function buildGridMarkup(post) {
+    const { bg, text, sub, border, imgBg, tag, noImageBg, iconGrid, iconFilm, iconContact } = POST_THEME[currentTheme] || POST_THEME.light;
+    const pid = 'g' + Math.random().toString(36).substr(2, 6);
+    const images = (post.images || '').split('\n').map(u => u.trim()).filter(u => u !== '').map(url => {
+        const isSpoiler = url.startsWith('[') && url.endsWith(']');
+        return { url: isSpoiler ? url.slice(1, -1) : url, isSpoiler };
+    });
+    
+    const postCount = images.length;
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const date = now.getDate();
+
+    const username = (post.username || '').trim() || 'noname';
+    const caption = (post.caption || '').trim();
+    const tags = (post.tags || '').trim();
+    let profilePic = (post.profile || '').trim();
+    if (!profilePic && postCount > 0) profilePic = images[0].url;
+
+    const profileImgTag = profilePic
+        ? `<img src="${profilePic}" alt="profile" style="width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important; aspect-ratio: 1/1; margin: 0 !important;">`
+        : `<div style="width: 100% !important; height: 100% !important; background-color: ${imgBg} !important;"></div>`;
+
+    let css = `
+#profile_${pid} {
+    width: 100% !important;
+    margin-bottom: 24px !important;
+    background: ${bg} !important;
+    border: 1px solid ${border} !important;
+    border-radius: 24px !important;
+    overflow: hidden !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+}
+#wrap_${pid} {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 3px !important;
+    width: 100% !important;
+    background: ${bg} !important;
+}
+#wrap_${pid} .grid-item {
+    position: relative !important;
+    width: 100% !important;
+    display: block !important;
+}
+[class*="insta"] .image-number-wrapper {
+    display: block !important;
+    width: 100%;
+    text-align: center;
+}
+#wrap_${pid} img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+    aspect-ratio: 1/1;
+    margin: 0 !important;
+}
+`;
+    
+    let html = `\n  <!-- [프로필 피드: ${username}] -->\n`;
+    html += `  <div id="profile_${pid}" style="overflow: hidden !important;">\n`;
+    
+    html += `    <div style="display: flex !important; padding: 20px 20px 16px !important; align-items: center !important; gap: 20px !important;">\n`;
+    html += `      <div style="width: 66px !important; height: 66px !important; border-radius: 50% !important; overflow: hidden !important; flex-shrink: 0 !important; border: 1px solid ${border} !important;">\n`;
+    html += `        ${profileImgTag}\n`;
+    html += `      </div>\n`;
+    html += `      <div style="flex: 1 !important;display: flex !important;justify-content: space-between !important;text-align: center !important;padding-right: 10px !important; width: calc(100% - 30px); max-width: 300px; margin-left: auto;">\n`;
+    html += `        <div><strong style="display: block !important; font-size: 16px !important; color: ${text} !important;">${postCount}</strong><span style="font-size: 13px !important; color: ${text} !important;">게시물</span></div>\n`;
+    html += `        <div><strong style="display: block !important; font-size: 16px !important; color: ${text} !important;">${month}</strong><span style="font-size: 13px !important; color: ${text} !important;">팔로워</span></div>\n`;
+    html += `        <div><strong style="display: block !important; font-size: 16px !important; color: ${text} !important;">${date}</strong><span style="font-size: 13px !important; color: ${text} !important;">팔로잉</span></div>\n`;
+    html += `      </div>\n`;
+    html += `    </div>\n`;
+
+    html += `    <div style="padding: 0 20px 16px !important; font-size: 14px !important; color: ${text} !important; line-height: 1.4 !important;">\n`;
+    html += `      <strong style="font-weight: 700 !important; color: ${text} !important;">${username}</strong>\n`;
+    if (caption) {
+        html += `      <div style="color: ${text} !important; margin-top: 4px !important; word-break: break-word !important; white-space: pre-line !important;">${caption}</div>\n`;
+    }
+    if (tags) {
+        html += `      <div style="color: ${tag} !important; font-size: 13px !important; margin-top: 4px !important; word-break: break-word !important;">${tags}</div>\n`;
+    }
+    html += `    </div>\n`;
+
+    html += `    <div style="border-top: 1px solid ${border} !important; display: flex !important; justify-content: space-between !important; width:100%;">\n`;
+    html += `      <div style="width: calc(100% / 3); border-top: 1px solid ${text} !important; padding: 12px !important; margin-top: -1px !important; display: flex !important; align-items: center !important; height: 35px !important;">\n`;
+    html += `        <img src="${iconGrid}" style="margin: 0 auto">\n`;
+    html += `      </div>\n`;
+    html += `      <div style="width: calc(100% / 3); border-top: 1px solid transparent !important; padding: 12px !important; margin-top: -1px !important; display: flex !important; align-items: center !important; height: 35px !important;">\n`;
+    html += `        <img src="${iconFilm}" style="margin: 0 auto">\n`;
+    html += `      </div>\n`;
+    html += `      <div style="width: calc(100% / 3); border-top: 1px solid transparent !important; padding: 12px !important; margin-top: -1px !important; display: flex !important; align-items: center !important; height: 35px !important;">\n`;
+    html += `        <img src="${iconContact}" style="margin: 0 auto">\n`;
+    html += `      </div>\n`;
+    html += `    </div>\n`;
+    
+    html += `    <div id="wrap_${pid}">\n`;
+    if (postCount === 0) {
+        html += `      <div style="grid-column: 1 / -1 !important; padding: 50px !important; text-align: center !important; color: #8e8e8e !important; font-size: 14px !important; background: #fafafa !important;">NO IMAGE</div>\n`;
+    } else {
+        images.forEach((img, i) => {
+            html += `      <div class="grid-item">\n`;
+            html += `        <img src="${img.url}" alt="grid image ${i+1}">\n`;
+            if (img.isSpoiler) {
+                html += `        <span class="spoiler img-spoiler-overlay" data-spoiler="true"></span>\n`;
+            }
+            html += `      </div>\n`;
+        });
+    }
+    html += `    </div>\n`;
+    html += `  </div>\n`;
+    
+    return { css, html };
+}
+
+// ----------------------------------------
+// 스토리
+// ----------------------------------------
+function buildStoryMarkup(post) {
+    const theme = POST_THEME.dark; 
+    const pid = 's' + Math.random().toString(36).substr(2, 6);
+    
+    const username = (post.username || '').trim() || 'user';
+    const caption = (post.caption || '').trim();
+    const tags = (post.tags || '').trim();
+    
+    const images = (post.images || '').split('\n').map(u => u.trim()).filter(u => u !== '').map(url => {
+        const isSpoiler = url.startsWith('[') && url.endsWith(']');
+        return { url: isSpoiler ? url.slice(1, -1) : url, isSpoiler };
+    });
+    
+    const n = images.length || 1;
+    const timePerSlide = post.storyTime || 4; 
+    const totalDuration = n * timePerSlide;
+    
+    let profilePic = (post.profile || '').trim();
+    if (!profilePic && images.length > 0) profilePic = images[0].url;
+
+    let css = `
+    .story-wrapper_${pid} {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        grid-template-rows: 1fr !important;
+        width: 100% !important;
+        aspect-ratio: 9/16 !important;
+        max-width: 480px !important;
+        margin: 0 auto 24px !important;
+        background: #0a0a0a !important;
+        border-radius: 24px !important;
+        color: #fff !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+        border: 1px solid #333 !important;
+    }
+    .story-track_${pid} {
+        display: flex !important;
+        width: ${n * 100}% !important;
+        height: 100% !important;
+        animation: storySlide_${pid} ${totalDuration}s infinite linear !important;
+    }
+    .story-slide_${pid} {
+        width: ${100/n}% !important;
+        height: 100% !important;
+        position: relative !important;
+    }
+    .story-slide_${pid} img {
+        width: 100% !important; 
+        height: 100% !important; 
+        aspect-ratio: 9 / 16 !important;
+        object-fit: cover !important; 
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .story-wrapper_${pid}:hover:not(:has(.story-bottom-ui_${pid}:hover)) .story-track_${pid},
+    .story-wrapper_${pid}:hover:not(:has(.story-bottom-ui_${pid}:hover)) .story-bar-anim_${pid} {
+        animation-play-state: paused !important;
+    }
+    
+    .story-actions_${pid} .heart-icon::before { background-image: url('${theme.iconHeart}') !important; }
+    .story-actions_${pid} .bubble-icon::before { background-image: url('${theme.iconBubble}') !important; }
+    .story-actions_${pid} .airplain-icon::before { background-image: url('${theme.iconAirplane}') !important; }
+    #${pid}_like:active ~ .heart-icon::before { background-image: url('${theme.iconHeartRed}') !important; }
+    #${pid}_like:checked ~ .heart-icon::before { background-image: url('${theme.iconHeartRed}') !important; }
+
+    .story-cap_${pid} summary::-webkit-details-marker { display: none !important; }
+    .story-cap_${pid}[open] .cap-closed, .story-cap_${pid}[open] .cap-closed-more { display: none !important; }
+    .story-cap_${pid}:not([open]) .cap-opened { display: none !important; }
+    `;
+
+    css += `@keyframes storySlide_${pid} {`;
+    for (let i = 0; i < n; i++) {
+        let start = (i / n) * 100;
+        let end = ((i + 1) / n) * 100;
+        let percentTrans = -(i * (100 / n));
+        css += `${start}%, ${end - 0.01}% { transform: translateX(${percentTrans}%); }\n`;
+    }
+    css += `100% { transform: translateX(0%); } }`;
+
+    let html = `\n  <!-- [스토리: ${username}] -->\n`;
+    html += `  <div class="story-wrapper_${pid}" style="overflow: hidden !important;">\n`;
+    
+    html += `    <div style="grid-area: 1 / 1 / 2 / 2 !important; align-self: start !important; width: 100% !important; box-sizing: border-box !important; padding: 14px 14px 0 !important; display: flex !important; gap: 4px !important; z-index: 30 !important; background: transparent !important;">\n`;
+    for (let i = 0; i < n; i++) {
+        let start = (i / n) * 100;
+        let end = ((i + 1) / n) * 100;
+        
+        css += `
+        @keyframes storyBar_${pid}_${i} {
+            0%, ${start}% { width: 0%; }
+            ${end - 0.1}% { width: 100%; }
+            ${end}%, 100% { width: 100%; }
+        }
+        .sbar_${pid}_${i} {
+            animation-name: storyBar_${pid}_${i} !important;
+            animation-duration: ${totalDuration}s !important;
+            animation-iteration-count: infinite !important;
+            animation-timing-function: linear !important;
+        }`;
+        
+        html += `      <div style="flex: 1 !important; height: 2px !important; background: rgba(255,255,255,0.3) !important; border-radius: 2px !important; overflow: hidden !important;">\n`;
+        html += `        <div class="story-bar-anim_${pid} sbar_${pid}_${i}" style="height: 100% !important; background: #fff !important; width: 0%;"></div>\n`;
+        html += `      </div>\n`;
+    }
+    html += `    </div>\n`;
+
+    html += `    <div style="grid-area: 1 / 1 / 2 / 2 !important; width: 100% !important; height: 100% !important; min-width: 0 !important; overflow: hidden !important; z-index: 10 !important;">\n`;
+    html += `      <div class="story-track_${pid}">\n`;
+    if (images.length === 0) {
+        html += `        <div class="story-slide_${pid}" style="display: flex !important; align-items: center !important; justify-content: center !important; font-size: 14px !important; color: #8e8e8e !important;">NO IMAGE</div>\n`;
+    } else {
+        images.forEach((img, i) => {
+            html += `        <div class="story-slide_${pid}">\n`;
+            html += `          <img src="${img.url}" alt="story img ${i+1}">\n`;
+            if (img.isSpoiler) html += `          <span class="spoiler img-spoiler-overlay" data-spoiler="true"></span>\n`;
+            html += `        </div>\n`;
+        });
+    }
+    html += `      </div>\n`;
+    html += `    </div>\n`;
+
+    html += `    <div style="grid-area: 1 / 1 / 2 / 2 !important; align-self: end !important; width: 100% !important; box-sizing: border-box !important; padding: 24px 16px 20px !important; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent) !important; z-index: 30 !important; display: flex !important; justify-content: space-between !important; align-items: flex-end !important; pointer-events: none !important;">\n`;
+    
+    html += `      <div class="story-bottom-ui_${pid}" style="flex: 1 !important; padding-right: 20px !important; pointer-events: auto !important;">\n`;
+    html += `        <div style="display: flex !important; align-items: center !important; gap: 8px !important; margin-bottom: 8px !important; height: 32px !important;">\n`;
+    const safePic = profilePic ? profilePic : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+    html += `          <img src="${safePic}" style="width: 32px !important; height: 32px !important; border-radius: 50% !important; object-fit: cover !important; background: #333 !important; border: 1px solid rgba(255,255,255,0.2) !important;">\n`;
+    html += `          <strong style="font-size: 14px !important; font-weight: 700 !important; text-shadow: 0 1px 4px rgba(0,0,0,0.8) !important;">${username}</strong>\n`;
+    html += `        </div>\n`;
+
+    const formattedCaption = caption.replace(/\n/g, '<br>');
+    const hasMore = caption.includes('\n') || caption.length > 25;
+
+    if (hasMore) {
+        html += `        <details class="story-cap_${pid}" style="margin: 0 !important; padding: 0 !important;">\n`;
+        html += `          <summary style="cursor: pointer !important; outline: none !important; margin: 0 !important; list-style: none !important;">\n`;
+        html += `            <div class="cap-closed" style="display: -webkit-box; -webkit-line-clamp: 1 !important; -webkit-box-orient: vertical !important; overflow: hidden !important; text-shadow: 0 1px 4px rgba(0,0,0,0.8) !important; font-size: 13.5px !important; word-break: break-word !important; color: #fff !important;">${formattedCaption}</div>\n`;
+        html += `            <div class="cap-closed-more" style="font-size: 12px !important; color: rgba(255,255,255,0.7) !important; margin-top: 4px !important; text-shadow: 0 1px 4px rgba(0,0,0,0.8) !important;">더보기</div>\n`;
+        html += `            <div class="cap-opened" style="font-size: 13.5px !important; text-shadow: 0 1px 4px rgba(0,0,0,0.8) !important; line-height: 1.4 !important; word-break: break-word !important; color: #fff !important;">\n`;
+        html += `              ${formattedCaption}\n`;
+        if (tags) html += `              <div style="color: #4db5ff !important; font-size: 13px !important; margin-top: 6px !important;">${tags}</div>\n`;
+        html += `              <div style="font-size: 12px !important; color: rgba(255,255,255,0.7) !important; margin-top: 4px !important;">접기</div>\n`;
+        html += `            </div>\n`;
+        html += `          </summary>\n`;
+        html += `        </details>\n`;
+    } else {
+        html += `        <div style="font-size: 13.5px !important; text-shadow: 0 1px 4px rgba(0,0,0,0.8) !important; color: #fff !important; word-break: break-word !important;">${formattedCaption}</div>\n`;
+        if (tags) html += `        <div style="color: #4db5ff !important; font-size: 13px !important; margin-top: 6px !important; text-shadow: 0 1px 4px rgba(0,0,0,0.8) !important;">${tags}</div>\n`;
+    }
+    html += `      </div>\n`;
+
+    html += `      <div class="story-actions_${pid} story-bottom-ui_${pid}" style="display: flex !important; flex-direction: column !important; gap: 18px !important; align-items: center !important; pointer-events: auto !important; margin-bottom: 2px !important;">\n`;
+    html += `        <input type="checkbox" id="${pid}_like" style="display:none !important;">\n`;
+    html += `        <label for="${pid}_like" class="action-icon heart-icon" style="cursor: pointer !important; width: 24px !important; height: 24px !important; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6)) !important;"></label>\n`;
+    html += `        <span class="action-icon bubble-icon" style="cursor: pointer !important; width: 24px !important; height: 24px !important; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6)) !important;"></span>\n`;
+    html += `        <span class="action-icon airplain-icon" style="cursor: pointer !important; width: 24px !important; height: 24px !important; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6)) !important;"></span>\n`;
+    html += `        <span style="font-size: 20px !important; line-height: 1 !important; color: #fff !important; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6)) !important; cursor: pointer !important; margin-top: 2px !important; padding: 4px 0 !important; font-weight: bold !important;">&#8942;</span>\n`;
+    html += `      </div>\n`;
+
+    html += `    </div>\n`;
+    html += `  </div>\n`;
+    
+    return { css, html };
+}
+
 function generateFinalHtml() {
     let dynamicStyles = baseStaticCss;
-    let bodyHtml = `\n<div class="insta-gallery-container" style="width: 100%; max-width: 480px !important; margin: 0 auto !important; font-family: 'Pretendard', sans-serif !important; color: #262626 !important; box-sizing: border-box !important;">\n`;
+    let bodyHtml = `\n<div class="insta-gallery-container" style="width: 100%; max-width: 480px !important; margin: 0 auto !important; font-family: 'Pretendard', sans-serif !important; color: #262626 !important; box-sizing: border-box !important; overflow: hidden !important;">\n`;
 
     posts.forEach(post => {
-        const { css, html } = post.type === 'grid' ? buildGridMarkup(post) : buildPostMarkup(post);
-        dynamicStyles += css;
-        bodyHtml += html;
+        let markup;
+        if (post.type === 'grid') markup = buildGridMarkup(post);
+        else if (post.type === 'story') markup = buildStoryMarkup(post);
+        else markup = buildPostMarkup(post);
+        
+        dynamicStyles += markup.css;
+        bodyHtml += markup.html;
     });
 
     bodyHtml += "\n</div>";
@@ -1038,21 +1223,25 @@ function renderFeed() {
     empty.style.display = posts.length === 0 ? 'flex' : 'none';
 
     posts.forEach(post => {
-        const isGrid = post.type === 'grid';
-        const { css, html } = isGrid ? buildGridMarkup(post) : buildPostMarkup(post);
+        let markup;
+        if (post.type === 'grid') markup = buildGridMarkup(post);
+        else if (post.type === 'story') markup = buildStoryMarkup(post);
+        else markup = buildPostMarkup(post);
         
-        const previewHtml = isGrid ? html : html.replace('<details class="insta-post"', '<details class="insta-post" open');
+        const previewHtml = (post.type === 'grid' || post.type === 'story') 
+            ? markup.html 
+            : markup.html.replace('<details class="insta-post"', '<details class="insta-post" open');
 
         const card = document.createElement('div');
         card.className = 'post-card';
         card.dataset.id = post.id;
         card.innerHTML = `
-            <button type="button" class="post-menu-btn${isGrid ? ' post-menu-btn--dots' : ''}" onclick="toggleMenu(event,'${post.id}')" aria-label="옵션"></button>
+            <button type="button" class="post-menu-btn${post.type !== 'post' ? ' post-menu-btn--dots' : ''}" onclick="toggleMenu(event,'${post.id}')" aria-label="옵션"></button>
             <div class="post-menu-dropdown" id="menu-${post.id}">
                 <button type="button" onclick="editPost('${post.id}')">${iconEdit} 수정</button>
                 <button type="button" class="danger" onclick="deletePost('${post.id}')">${iconTrash} 삭제</button>
             </div>
-            <style>${css}</style>
+            <style>${markup.css}</style>
             ${previewHtml}
         `;
         feed.appendChild(card);
@@ -1077,13 +1266,16 @@ document.addEventListener('click', (e) => {
 });
 
 function toggleFields() {
-    const isGrid = document.getElementById('type-grid').checked;
-    document.getElementById('postOnlyFieldsTop').style.display = isGrid ? 'none' : 'flex';
-    document.getElementById('captionLabel').textContent = isGrid ? '바이오' : '본문 텍스트';
+    const type = document.querySelector('input[name="f-type"]:checked').value;
+    
+    document.getElementById('postOnlyFieldsTop').style.display = (type === 'grid' || type === 'story') ? 'none' : 'flex';
+    document.getElementById('storyOnlyFields').style.display = type === 'story' ? 'flex' : 'none';
+    
+    document.getElementById('captionLabel').textContent = type === 'grid' ? '바이오' : '본문 텍스트';
 
     const expandedField = document.getElementById('f-expanded').closest('.field');
     if (expandedField) {
-        expandedField.style.display = isGrid ? 'none' : 'flex';
+        expandedField.style.display = (type === 'grid' || type === 'story') ? 'none' : 'flex';
     }
 }
 
@@ -1095,7 +1287,7 @@ function editPost(id) {
 
 function deletePost(id) {
     document.querySelectorAll('.post-menu-dropdown.open').forEach(d => d.classList.remove('open'));
-    if (!confirm('이 게시물을 삭제할까요?')) return;
+    if (!confirm('이 항목을 삭제할까요?')) return;
     posts = posts.filter(p => p.id !== id);
     saveState();
     renderFeed();
@@ -1103,18 +1295,19 @@ function deletePost(id) {
 
 function openModal(post) {
     editingId = post ? post.id : null;
-    document.getElementById('modalTitle').textContent = post ? '게시물 수정' : '새 게시물';
+    document.getElementById('modalTitle').textContent = post ? '수정하기' : '새로 만들기';
     document.getElementById('submitBtn').textContent = post ? '수정 완료' : '등록하기';
 
     const type = post ? (post.type || 'post') : 'post';
-    document.getElementById(type === 'grid' ? 'type-grid' : 'type-post').checked = true;
+    document.getElementById('type-' + type).checked = true;
     
     document.getElementById('f-username').value = post ? (post.username || '') : 'noname';
     document.getElementById('f-profile').value = post ? (post.profile || '') : '';
     document.getElementById('f-time').value = post ? (post.time || '') : getCurrentTimeStr();
+    document.getElementById('f-story-time').value = post ? (post.storyTime || 4) : 4;
     document.getElementById('f-images').value = post ? (post.images || '') : '';
-    document.getElementById('f-caption').value = post ? (post.caption || '') : lastCaption;
-    document.getElementById('f-tags').value = post ? (post.tags || '') : lastTags;
+    document.getElementById('f-caption').value = post ? (post.caption || '') : (type !== 'grid' ? lastCaption : '');
+    document.getElementById('f-tags').value = post ? (post.tags || '') : (type !== 'grid' ? lastTags : '');
     document.getElementById('f-expanded').checked = post ? !!post.expanded : false;
 
     toggleFields();
@@ -1135,20 +1328,21 @@ function closeModal() {
 
 function handleSubmit(e) {
     e.preventDefault();
-    const isGrid = document.getElementById('type-grid').checked;
+    const type = document.querySelector('input[name="f-type"]:checked').value;
     
     const data = {
-        type: isGrid ? 'grid' : 'post',
+        type: type,
         username: document.getElementById('f-username').value.trim(),
         profile: document.getElementById('f-profile').value.trim(),
         time: document.getElementById('f-time').value.trim(),
+        storyTime: Number(document.getElementById('f-story-time').value) || 4,
         images: document.getElementById('f-images').value,
         caption: document.getElementById('f-caption').value.trim(),
         tags: document.getElementById('f-tags').value.trim(),
         expanded: document.getElementById('f-expanded').checked
     };
 
-    if (!isGrid) {
+    if (type !== 'grid') {
         lastCaption = data.caption;
         lastTags = data.tags;
     }
@@ -1167,7 +1361,7 @@ function handleSubmit(e) {
 
 function resetAll() {
     if (posts.length === 0) return;
-    if (!confirm('저장된 모든 게시물을 삭제할까요? 이 작업은 되돌릴 수 없습니다.')) return;
+    if (!confirm('저장된 모든 항목을 삭제할까요? 이 작업은 되돌릴 수 없습니다.')) return;
     posts = [];
     saveState();
     renderFeed();
@@ -1185,7 +1379,7 @@ function showToast(msg, isError) {
 
 async function copyCode() {
     if (posts.length === 0) {
-        showToast('먼저 게시물을 추가해주세요', true);
+        showToast('먼저 항목을 추가해주세요', true);
         return;
     }
     const finalHtml = generateFinalHtml();
