@@ -1,5 +1,5 @@
 {
-  "name": "인스타 글꾸 생성기",
+  "name": "인스타 글꾸 메이커",
   "short_name": "인스타",
   "start_url": "./index.html",
   "display": "standalone",
