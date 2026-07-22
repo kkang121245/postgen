@@ -1058,7 +1058,7 @@ function buildTweetMarkup(post, radius, preview, cid) {
     if (replyCount > 0) {
         html += `      <details class="t-reply-thread" style="margin-top: 12px !important; border-top: 1px solid var(--t-border) !important; padding-top: 10px !important;"${preview ? ' open' : ''}>\n`;
         html += `        <summary style="cursor: pointer !important; color: var(--t-link) !important; font-size: 13px !important; font-weight: 700 !important;">\n`;
-        html += `          <span class="t-rep-closed-${pid}">답글 ${replyCount}개 보기</span>\n`;
+        html += `          <span class="t-rep-closed-${pid}" style="color: var(--t-text) !important;">답글 ${replyCount}개 보기</span>\n`;
         html += `          <span class="t-rep-opened-${pid}" style="display: none !important;">답글 접기</span>\n`;
         html += `        </summary>\n`;
         html += `        <div class="t-reply-tweets" style="display: flex !important; flex-direction: column !important; gap: 10px !important; margin-top: 10px !important;">\n`;
@@ -1243,8 +1243,8 @@ function generateFinalHtml() {
     return `<style>\n${dynamicStyles}\n</style>\n${bodyHtml}`;
 }
 
-const STORAGE_KEY = 'twgen-07222';
-const THEME_KEY = 'twgen-theme-07222';
+const STORAGE_KEY = 'twgen-07223';
+const THEME_KEY = 'twgen-theme-07223';
 let posts = [];
 let editingId = null;
 let modalIsCreatingNew = true;
