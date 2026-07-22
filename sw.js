@@ -1,4 +1,4 @@
-const CACHE_NAME = 'insta-feed-cache-v4';
+const CACHE_NAME = 'postgen-v1';
 const urlsToCache = [
   './',
   './index.html',
