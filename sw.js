@@ -1,4 +1,4 @@
-const CACHE_NAME = 'postgen-v5';
+const CACHE_NAME = 'postgen-07221';
 const urlsToCache = [
   './',
   './index.html',
