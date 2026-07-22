@@ -674,7 +674,10 @@ const baseStaticCss = `
 
 .t-gallery-container * { box-sizing: border-box !important; }
 .t-gallery-container .image-number-badge { display: none !important; }
-.t-gallery-container .image-number-wrapper { margin: 0 !important; aspect-ratio: 1 / 1 }
+.t-gallery-container .image-number-wrapper { margin: 0 !important; }
+.t-gallery-container .gridbox .image-number-wrapper {
+  width: 100%;
+}
 
 .t-link { color: var(--t-link) !important; text-decoration: none !important; word-break: break-all !important; }
 .t-link:hover { text-decoration: underline !important; }
@@ -737,12 +740,17 @@ const baseStaticCss = `
   background-color: var(--t-text) !important;
   color: var(--t-bg) !important;
 }
-.t-follow-toggle:checked + .t-follow-btn {
+.t-follow-toggle:checked ~ * .t-follow-btn {
   background-color: var(--t-link) !important;
   color: #ffffff !important;
 }
-.t-follow-toggle:checked + .t-follow-btn .t-follow-txt-default { display: none !important; }
-.t-follow-toggle:checked + .t-follow-btn .t-follow-txt-active { display: inline-block !important; }
+.t-follow-toggle:checked ~ * .t-follow-btn .t-follow-txt-default { display: none !important; }
+.t-follow-toggle:checked ~ * .t-follow-btn .t-follow-txt-active { display: inline-block !important; }
+
+.f-num-active { display: none !important; } 
+
+.t-follow-toggle:checked ~ * .f-num-default { display: none !important; }
+.t-follow-toggle:checked ~ * .f-num-active { display: inline-block !important; }
 `;
 
 const styleEl = document.createElement('style');
@@ -772,6 +780,29 @@ const THEME_VARS = {
 };
 
 const DEFAULT_PROFILE = 'https://i.postimg.cc/nV5fB02t/default-profile-200x200.png';
+
+let quotingPostId = null;
+
+function openQuoteModal(postId) {
+    quotingPostId = postId;
+    editingId = null;
+    modalIsCreatingNew = true;
+
+    document.getElementById('type-tweet').checked = true;
+    document.getElementById('type-profile').disabled = true;
+    document.getElementById('type-tweet').disabled = false;
+
+    fillFormFields(null);
+    toggleFields();
+    renderQuickUsers('quickSelectUsers', '');
+
+    document.getElementById('modalTitle').textContent = '리트윗 작성';
+    document.getElementById('submitBtn').textContent = '리트윗하기';
+
+    document.getElementById('modalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.getElementById('f-name').focus(), 100);
+}
 
 function renderQuickUsers(containerId, prefix) {
     const container = document.getElementById(containerId);
@@ -853,9 +884,9 @@ function buildImageGrid(images, n, marginTop) {
     else if (n === 2) gridStyle += " grid-template-columns: 1fr 1fr !important; aspect-ratio: 16/9 !important;";
     else gridStyle += " grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important; aspect-ratio: 16/9 !important;";
 
-    let html = `      <div style="${gridStyle}">\n`;
+    let html = `      <div class="gridbox" style="${gridStyle}">\n`;
     for (let i = 0; i < n; i++) {
-        let cellStyle = `display: grid; position: relative !important; width: 100% !important; height: 100% !important; overflow: hidden !important;`;
+        let cellStyle = `display: flex; justify-content: center; position: relative !important; width: 100% !important; height: 100% !important; overflow: hidden !important;`;
         if (n === 3 && i === 0) cellStyle += ` grid-row: span 2 !important;`;
         html += `        <div style="${cellStyle}">\n`;
         html += `          <img src="${images[i].url}" style="width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important; margin: 0 !important;">\n`;
@@ -871,7 +902,7 @@ function buildImageGrid(images, n, marginTop) {
 // ----------------------------------------
 // 프로필
 // ----------------------------------------
-function buildProfileMarkup(post, radius) {
+function buildProfileMarkup(post, radius, cid) {
     const theme = THEME_VARS[currentTheme] || THEME_VARS.light;
     const pid = 'p' + Math.random().toString(36).substr(2, 6);
     
@@ -885,8 +916,17 @@ function buildProfileMarkup(post, radius) {
         
     const bioHtml = formatLinks(post.bio || '');
 
+    let baseCount = post.followers || '0';
+    let plusOneCount = baseCount;
+    const numOnly = baseCount.replace(/,/g, '');
+    if (!isNaN(numOnly) && numOnly.trim() !== '') {
+        plusOneCount = (parseInt(numOnly, 10) + 1).toLocaleString();
+    }
+
     let html = `\n  <!-- [프로필: @${handle}] -->\n`;
     html += `  <div id="prof_${pid}" class="t-component" style="background-color: var(--t-bg) !important; border-bottom: 1px solid var(--t-border) !important; border-radius: ${radius} !important; overflow: hidden !important; width: 100% !important;">\n`;
+    
+    html += `    <input type="checkbox" id="follow_${pid}" class="t-follow-toggle" style="display: none !important;">\n`;
     
     html += `    <div style="height: auto !important; aspect-ratio: 3 / 1; width: 100% !important; ${bannerStyle}"></div>\n`;
     
@@ -895,8 +935,7 @@ function buildProfileMarkup(post, radius) {
     html += `        <img src="${profilePic}" style="width: clamp(60px, 20vw, 90px) !important; height: clamp(60px, 20vw, 90px) !important; border-radius: 50% !important; border: 4px solid var(--t-bg) !important; background: var(--t-bg) !important; object-fit: cover !important; display: block !important; margin: 0 !important;">\n`;
     html += `      </div>\n`;
     html += `      <div style="margin-top: 12px !important;">\n`;
-    html += `        <label style="cursor: pointer !important; display: block !important;">\n`;
-    html += `          <input type="checkbox" style="display: none !important;" class="t-follow-toggle">\n`;
+    html += `        <label for="follow_${pid}" style="cursor: pointer !important; display: block !important;">\n`;
     html += `          <div class="t-follow-btn" style="font-weight: 700 !important; font-size: 15px !important; padding: 0 16px !important; height: 34px !important; display: flex !important; align-items: center !important; justify-content: center !important; border-radius: 17px !important; font-family: inherit !important; transition: background-color 0.2s !important;">\n`;
     html += `            <span class="t-follow-txt-default">Follow</span>\n`;
     html += `            <span class="t-follow-txt-active">Following</span>\n`;
@@ -922,20 +961,21 @@ function buildProfileMarkup(post, radius) {
     
     html += `      <div style="display: flex !important; gap: 20px !important; margin-top: 12px !important; font-size: 14.5px !important;">\n`;
     html += `        <span><b style="color: var(--t-text) !important;">${post.following || 0}</b> <span style="color: var(--t-sub) !important;">Following</span></span>\n`;
-    html += `        <span><b style="color: var(--t-text) !important;">${post.followers || 0}</b> <span style="color: var(--t-sub) !important;">Followers</span></span>\n`;
+    html += `        <span><b style="color: var(--t-text) !important;"><span class="f-num-default">${baseCount}</span><span class="f-num-active">${plusOneCount}</span></b> <span style="color: var(--t-sub) !important;">Followers</span></span>\n`;
     html += `      </div>\n`;
     html += `    </div>\n`;
     
     html += `    <div class="t-tabs-scroll" style="display: flex !important; border-bottom: 1px solid var(--t-border) !important; font-size: 15px !important; font-weight: 500 !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch !important;">\n`;
-    const tabs = ['게시물', '답글', '미디어', '마음에 들어요'];
-    tabs.forEach((t, i) => {
-        const isActive = i === 0;
-        const color = isActive ? 'var(--t-text)' : 'var(--t-sub)';
-        const bold = isActive ? '700' : '500';
-        const borderB = isActive ? '4px solid var(--t-link)' : '4px solid transparent';
-        html += `      <div style="width: 100%; white-space: nowrap !important; padding: 0 18px !important; text-align: center !important; cursor: pointer !important; transition: background 0.2s !important; display: flex !important; justify-content: center !important;">\n`;
-        html += `        <div style="padding: 16px 0 !important; color: ${color} !important; font-weight: ${bold} !important; border-bottom: ${borderB} !important; display: inline-block !important;">${t}</div>\n`;
-        html += `      </div>\n`;
+    const tabsData = [
+        { id: 'posts', text: '게시물' },
+        { id: 'replies', text: '답글' },
+        { id: 'media', text: '미디어' },
+        { id: 'likes', text: '마음에 들어요' }
+    ];
+    tabsData.forEach((t) => {
+        html += `      <label for="${cid}_tab_${t.id}" style="width: 100%; white-space: nowrap !important; padding: 0 18px !important; text-align: center !important; cursor: pointer !important; transition: background 0.2s !important; display: flex !important; justify-content: center !important; margin: 0 !important; -webkit-tap-highlight-color: transparent !important;">\n`;
+        html += `        <div class="t-tab-label" data-target="${cid}_tab_${t.id}" style="padding: 16px 0 !important; display: inline-block !important; transition: color 0.2s, border-color 0.2s;">${t.text}</div>\n`;
+        html += `      </label>\n`;
     });
     html += `    </div>\n`;
     html += `  </div>\n`;
@@ -946,7 +986,7 @@ function buildProfileMarkup(post, radius) {
 // ----------------------------------------
 // 트윗 (게시글)
 // ----------------------------------------
-function buildTweetMarkup(post, radius, preview) {
+function buildTweetMarkup(post, radius, preview, cid) {
     const pid = 't' + Math.random().toString(36).substr(2, 6);
     const name = post.name || 'User Name';
     const handle = (post.handle || 'username').replace(/^@/, '');
@@ -958,8 +998,11 @@ function buildTweetMarkup(post, radius, preview) {
     const replies = post.replies || [];
     const replyCount = replies.length;
 
+    const hasReplies = replyCount > 0 ? "true" : "false";
+    const hasMedia = n > 0 ? "true" : "false";
+
     let html = `\n  <!-- [트윗: @${handle}] -->\n`;
-    html += `  <div id="twt_${pid}" class="t-component" style="background-color: var(--t-bg) !important; border-bottom: 1px solid var(--t-border) !important; border-radius: ${radius} !important; padding: 16px !important; display: flex !important; flex-direction: row !important; gap: 12px !important; width: 100% !important;">\n`;
+    html += `  <div id="twt_${pid}" class="t-component t-tweet-card" data-has-replies="${hasReplies}" data-has-media="${hasMedia}" style="background-color: var(--t-bg) !important; border-bottom: 1px solid var(--t-border) !important; border-radius: ${radius} !important; padding: 16px !important; display: flex !important; flex-direction: row !important; gap: 12px !important; width: 100% !important;">\n`;
       html += `    <div style="flex-shrink: 0 !important;">\n`;
     html += `      <img src="${profilePic}" style="width: clamp(36px, 10vw, 44px) !important; height: clamp(36px, 10vw, 44px) !important; border-radius: 50% !important; object-fit: cover !important; display: block !important; margin: 0 !important;">\n`;
     html += `    </div>\n`;
@@ -975,6 +1018,25 @@ function buildTweetMarkup(post, radius, preview) {
     
     if (n > 0) html += buildImageGrid(images, n, '12px');
     
+    if (post.quote) {
+        const qImages = parseImages(post.quote.images);
+        const qn = Math.min(qImages.length, 4);
+        
+        html += `      <div class="t-quote-box" style="margin-top: 12px !important; border: 1px solid var(--t-border) !important; border-radius: 16px !important; padding: 12px !important; overflow: hidden !important;">\n`;
+        html += `        <div style="display: flex !important; align-items: center !important; gap: 8px !important; margin-bottom: 4px !important; line-height: 1.2 !important;">\n`;
+        html += `          <img src="${post.quote.profile || DEFAULT_PROFILE}" style="width: 20px !important; height: 20px !important; border-radius: 50% !important; object-fit: cover !important; display: block !important; margin: 0 !important;">\n`;
+        html += `          <b style="font-size: 14px !important; color: var(--t-text) !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; max-width: 50% !important;">${post.quote.name || 'User Name'}</b>\n`;
+        html += `          <span style="font-size: 14px !important; color: var(--t-sub) !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important;">@${(post.quote.handle || 'username').replace(/^@/, '')}</span>\n`;
+        html += `        </div>\n`;
+        if (post.quote.text) {
+            html += `        <div style="font-size: 14px !important; color: var(--t-text) !important; line-height: 1.5 !important; word-break: break-word !important; margin-top: 4px !important;">${formatLinks(post.quote.text)}</div>\n`;
+        }
+        if (qn > 0) {
+            html += buildImageGrid(qImages, qn, '10px');
+        }
+        html += `      </div>\n`;
+    }
+
     html += `      <div style="display: flex !important; justify-content: space-between !important; margin-top: 12px !important;">\n`;
     html += `        <span style="display: flex !important; align-items: center !important; gap: 4px !important;">\n`;
     html += `          <span class="t-icon t-icon-bubble"${preview ? ` onclick="openReplyModal('${post.id}')"` : ''}></span>\n`;
@@ -982,7 +1044,7 @@ function buildTweetMarkup(post, radius, preview) {
         html += `          <span class="t-reply-count" style="font-size: 12.5px !important; color: var(--t-sub) !important; font-weight: 600 !important;">${replyCount}</span>\n`;
     }
     html += `        </span>\n`;
-    html += `        <span class="t-icon t-icon-retweet"></span>\n`;
+    html += `        <span class="t-icon t-icon-retweet"${preview ? ` onclick="openQuoteModal('${post.id}')"` : ''} style="${preview ? 'cursor: pointer !important;' : ''}"></span>\n`;
     html += `        <label style="cursor: pointer !important; display: inline-block !important; line-height: 1 !important;"><input type="checkbox" style="display: none !important;" class="t-like-toggle"><span class="t-icon t-icon-heart"></span></label>\n`;
     html += `        <span class="t-icon t-icon-bookmark"></span>\n`;
     html += `      </div>\n`;
@@ -1058,6 +1120,7 @@ html += `                <span class="t-icon t-icon-bubble"${preview ? ` onclick
 function generateFinalHtml() {
     const theme = THEME_VARS[currentTheme] || THEME_VARS.light;
     let dynamicStyles = baseStaticCss;
+    const cid = 'g' + Math.random().toString(36).substr(2, 6);
     
     dynamicStyles += `
 .t-gallery-container {
@@ -1073,27 +1136,51 @@ function generateFinalHtml() {
 .t-icon-heart { background-image: url('${theme.iconHeart}') !important; }
 .t-icon-bookmark { background-image: url('${theme.iconBookmark}') !important; }
 .t-like-toggle:checked ~ .t-icon-heart { background-image: url('${theme.iconHeartRed}') !important; opacity: 1 !important; }
+
+.t-tab-radio { display: none !important; }
+.t-tab-label {
+    color: var(--t-sub) !important;
+    font-weight: 500 !important;
+    border-bottom: 4px solid transparent !important;
+}
+#${cid}_tab_replies:checked ~ .t-tweet-card:not([data-has-replies="true"]) { display: none !important; }
+#${cid}_tab_media:checked ~ .t-tweet-card:not([data-has-media="true"]) { display: none !important; }
+#${cid}_tab_likes:checked ~ .t-tweet-card:not(:has(.t-like-toggle:checked)) { display: none !important; }
+
+#${cid}_tab_posts:checked ~ * .t-tab-label[data-target="${cid}_tab_posts"],
+#${cid}_tab_replies:checked ~ * .t-tab-label[data-target="${cid}_tab_replies"],
+#${cid}_tab_media:checked ~ * .t-tab-label[data-target="${cid}_tab_media"],
+#${cid}_tab_likes:checked ~ * .t-tab-label[data-target="${cid}_tab_likes"] {
+    color: var(--t-text) !important;
+    font-weight: 700 !important;
+    border-bottom: 4px solid var(--t-link) !important;
+}
 `;
 
     let bodyHtml = `\n<div class="t-gallery-container" style="width: 100%; max-width: 900px !important; margin: 0 auto !important; font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif !important; box-sizing: border-box !important;">\n`;
+    
+    bodyHtml += `  <input type="radio" id="${cid}_tab_posts" name="tabs_${cid}" class="t-tab-radio" checked>\n`;
+    bodyHtml += `  <input type="radio" id="${cid}_tab_replies" name="tabs_${cid}" class="t-tab-radio">\n`;
+    bodyHtml += `  <input type="radio" id="${cid}_tab_media" name="tabs_${cid}" class="t-tab-radio">\n`;
+    bodyHtml += `  <input type="radio" id="${cid}_tab_likes" name="tabs_${cid}" class="t-tab-radio">\n`;
 
     const sortedPosts = sortPostsWithProfileFirst(posts);
     sortedPosts.forEach((post, idx) => {
         const radius = getCardRadius(idx, sortedPosts.length);
         let markup;
-        if (post.type === 'profile') markup = buildProfileMarkup(post, radius);
-        else markup = buildTweetMarkup(post, radius);
+        if (post.type === 'profile') markup = buildProfileMarkup(post, radius, cid);
+        else markup = buildTweetMarkup(post, radius, false, cid);
+        
         dynamicStyles += markup.css;
         bodyHtml += markup.html;
     });
 
     bodyHtml += "\n</div>";
-
     return `<style>\n${dynamicStyles}\n</style>\n${bodyHtml}`;
 }
 
-const STORAGE_KEY = 'twgen-v3';
-const THEME_KEY = 'twgen-theme-v3';
+const STORAGE_KEY = 'twgen-07221';
+const THEME_KEY = 'twgen-theme-07221';
 let posts = [];
 let editingId = null;
 let modalIsCreatingNew = true;
@@ -1125,7 +1212,6 @@ function openReplyModal(postId, replyId, targetHandle) {
         }
     }
     document.getElementById('f-reply-text').value = reply ? (reply.text || '') : defaultText;
-    // ----------------------------------------
 
     document.getElementById('f-reply-images').value = reply ? (reply.images || '') : '';
 
@@ -1248,14 +1334,42 @@ function renderFeed() {
 
     sortedPosts.forEach((post, idx) => {
         const radius = getCardRadius(idx, sortedPosts.length);
+        const cid = 'prev_' + post.id;
         let markup;
-        if (post.type === 'profile') markup = buildProfileMarkup(post, radius);
-        else markup = buildTweetMarkup(post, radius, true);
+        if (post.type === 'profile') markup = buildProfileMarkup(post, radius, cid);
+        else markup = buildTweetMarkup(post, radius, true, cid);
         
         const card = document.createElement('div');
         card.className = 'post-card t-gallery-container';
         card.style.cssText = wrapStyle;
         card.dataset.id = post.id;
+
+        let previewRadios = '';
+        let previewTabStyles = '';
+        if (post.type === 'profile') {
+            previewRadios = `
+                <input type="radio" id="${cid}_tab_posts" name="tabs_${cid}" class="t-tab-radio" checked style="display:none;">
+                <input type="radio" id="${cid}_tab_replies" name="tabs_${cid}" class="t-tab-radio" style="display:none;">
+                <input type="radio" id="${cid}_tab_media" name="tabs_${cid}" class="t-tab-radio" style="display:none;">
+                <input type="radio" id="${cid}_tab_likes" name="tabs_${cid}" class="t-tab-radio" style="display:none;">
+            `;
+            previewTabStyles = `
+                .t-tab-label {
+                    color: var(--t-sub) !important;
+                    font-weight: 500 !important;
+                    border-bottom: 4px solid transparent !important;
+                }
+                #${cid}_tab_posts:checked ~ * .t-tab-label[data-target="${cid}_tab_posts"],
+                #${cid}_tab_replies:checked ~ * .t-tab-label[data-target="${cid}_tab_replies"],
+                #${cid}_tab_media:checked ~ * .t-tab-label[data-target="${cid}_tab_media"],
+                #${cid}_tab_likes:checked ~ * .t-tab-label[data-target="${cid}_tab_likes"] {
+                    color: var(--t-text) !important;
+                    font-weight: 700 !important;
+                    border-bottom: 4px solid var(--t-link) !important;
+                }
+            `;
+        }
+
         card.innerHTML = `
             <button type="button" class="post-menu-btn" onclick="toggleMenu(event,'${post.id}')" aria-label="옵션"></button>
             <div class="post-menu-dropdown" id="menu-${post.id}">
@@ -1269,16 +1383,57 @@ function renderFeed() {
                 .t-icon-heart { background-image: url('${theme.iconHeart}') !important; }
                 .t-icon-bookmark { background-image: url('${theme.iconBookmark}') !important; }
                 .t-like-toggle:checked ~ .t-icon-heart { background-image: url('${theme.iconHeartRed}') !important; opacity: 1 !important; }
+                ${previewTabStyles}
                 ${markup.css}
             </style>
+            ${previewRadios}
             ${markup.html}
         `;
         feed.appendChild(card);
     });
 
+    const radios = feed.querySelectorAll('.t-tab-radio');
+    
+    const applyFilter = () => {
+        const activeRadio = feed.querySelector('.t-tab-radio:checked');
+        if (!activeRadio) return;
+        
+        const isReplies = activeRadio.id.includes('_tab_replies');
+        const isMedia = activeRadio.id.includes('_tab_media');
+        const isLikes = activeRadio.id.includes('_tab_likes');
+        
+        feed.querySelectorAll('.post-card').forEach(card => {
+            const tweet = card.querySelector('.t-tweet-card');
+            if (!tweet) return;
+            const isLiked = tweet.querySelector('.t-like-toggle:checked') !== null;
+            
+            if (isReplies && tweet.dataset.hasReplies !== 'true') {
+                card.style.display = 'none';
+            } else if (isMedia && tweet.dataset.hasMedia !== 'true') {
+                card.style.display = 'none';
+            } else if (isLikes && !isLiked) {
+                card.style.display = 'none';
+            } else {
+                card.style.display = 'block';
+            }
+        });
+    };
+
+    radios.forEach(radio => {
+        radio.addEventListener('change', applyFilter);
+    });
+
+    feed.querySelectorAll('.t-like-toggle').forEach(likeBtn => {
+        likeBtn.addEventListener('change', () => {
+            const likesTab = feed.querySelector('[id$="_tab_likes"]');
+            if (likesTab && likesTab.checked) {
+                applyFilter();
+            }
+        });
+    });
+
     document.getElementById('copyBtn').disabled = posts.length === 0;
 }
-
 function toggleMenu(e, id) {
     e.preventDefault();
     e.stopPropagation();
@@ -1377,6 +1532,7 @@ function closeModal() {
     document.getElementById('modalOverlay').classList.remove('open');
     document.body.style.overflow = '';
     editingId = null;
+    quotingPostId = null;
     document.getElementById('type-profile').disabled = false;
     document.getElementById('type-tweet').disabled = false;
 }
@@ -1401,6 +1557,21 @@ function handleSubmit(e) {
         text: document.getElementById('f-text').value.trim(),
         images: document.getElementById('f-images').value.trim()
     };
+
+    if (quotingPostId) {
+        const origPost = posts.find(p => p.id === quotingPostId);
+        if (origPost) {
+            data.quote = {
+                name: origPost.name,
+                handle: origPost.handle,
+                profile: origPost.profile,
+                text: origPost.text,
+                images: origPost.images
+            };
+        }
+        posts = posts.filter(p => p.id !== quotingPostId);
+        quotingPostId = null;
+    }
 
     if (editingId) {
         const idx = posts.findIndex(p => p.id === editingId);
