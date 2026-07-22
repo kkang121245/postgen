@@ -1,4 +1,4 @@
-const CACHE_NAME = 'insta-feed-cache-v1';
+const CACHE_NAME = 'insta-feed-cache-v4';
 const urlsToCache = [
   './',
   './index.html',
