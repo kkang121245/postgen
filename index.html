@@ -489,7 +489,7 @@ input[type="text"]:focus, input[type="number"]:focus, textarea:focus{ border-col
       <button type="button" class="icon-btn accent" id="cameraBtn" title="다크 모드로 전환" aria-label="다크 모드로 전환">
         <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>
       </button>
-      <h1 class="topbar-title">Feed</h1>
+      <h1 class="topbar-title" style="cursor: pointer;" onclick="location.href='x.html'" title="트위터 모드로 전환">Feed</h1>
       <button type="button" class="icon-btn accent" id="addBtn" title="게시물 추가" aria-label="게시물 추가">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </button>
@@ -990,7 +990,7 @@ function buildStoryMarkup(post) {
         background: #0a0a0a !important;
         border-radius: 24px !important;
         color: #fff !important;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
         border: 1px solid #333 !important;
     }
     .story-track_${pid} {

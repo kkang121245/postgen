@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>트위터 글꾸 메이커</title>
+
+<meta name="theme-color" content="#ffffff">
+
+<style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+@import url("https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap");
+
+:root{
+  --accent-a: #1d9bf0;
+  --accent-b: #8ecdf8;
+  --accent-grad: linear-gradient(135deg, #1d9bf0, #8ecdf8);
+  --accent: #1d9bf0;
+  --ink: #0f1419;
+  --sub: #536471;
+  --border: #eff3f4;
+  --danger: #ef6d94;
+  --card-bg: #ffffff;
+  --shadow-soft: 0 14px 32px rgba(29, 155, 240, 0.16);
+  --page-bg:
+    radial-gradient(520px 380px at 8% 0%, rgba(29, 155, 240, 0.15), transparent 60%),
+    radial-gradient(560px 420px at 100% 12%, rgba(142, 205, 248, 0.15), transparent 60%),
+    linear-gradient(160deg, #f7f9fa 0%, #f0f3f5 100%);
+  --topbar-bg: rgba(255,255,255,0.65);
+  --surface: #ffffff;
+  --surface-soft: #f7f9fa;
+  --surface-soft-hover: #eff3f4;
+  --dropdown-hover: #f7f9fa;
+  --empty-bg: rgba(255,255,255,0.55);
+  --empty-border: rgba(255,255,255,0.7);
+  --empty-color: #8ecdf8;
+  --empty-color-strong: #1d9bf0;
+  --modal-overlay-bg: rgba(0, 0, 0, 0.42);
+  --menu-hover-bg: rgba(29, 155, 240, 0.12);
+}
+
+html[data-theme="dark"]{  
+  --accent-a: #1d9bf0;
+  --accent-b: #005c9e;
+  --accent-grad: linear-gradient(135deg, #1d9bf0, #005c9e);
+  --accent: #1d9bf0;
+  --ink: #e7e9ea;
+  --sub: #71767b;
+  --border: #2f3336;
+  --danger: #ff7f9f;
+  --card-bg: #000000;
+  --shadow-soft: 0 14px 32px rgba(0, 0, 0, 0.45);  
+  --shadow-soft-hover: 0 14px 32px rgba(51, 51, 51, 0.45);
+  --page-bg:
+    radial-gradient(520px 380px at 8% 0%, rgba(29, 155, 240, 0.1), transparent 60%),
+    linear-gradient(160deg, #15202b 0%, #000000 100%);
+  --topbar-bg: rgba(0, 0, 0, 0.75);
+  --surface: #000000;
+  --surface-soft: #16181c;
+  --surface-soft-hover: #1d1f23;
+  --dropdown-hover: #16181c;
+  --empty-bg: rgba(255,255,255,0.04);
+  --empty-border: rgba(255,255,255,0.08);
+  --empty-color: #71767b;
+  --empty-color-strong: #e7e9ea;
+  --modal-overlay-bg: rgba(91, 112, 131, 0.4);
+  --menu-hover-bg: rgba(29, 155, 240, 0.18);
+}
+
+*{ box-sizing: border-box; }
+
+body{
+  margin: 0;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+  background: var(--page-bg);
+  background-attachment: fixed;
+  transition: background .25s ease, color .25s ease;
+}
+
+.site{
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar{
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--topbar-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(29, 155, 240, 0.08);
+  flex-shrink: 0;
+  transition: background .25s ease, border-color .25s ease;
+}
+.topbar-inner{
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.topbar-title{
+  font-family: 'Gowun Batang', 'Pretendard', serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  margin: 0;
+  background: var(--accent-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.icon-btn{
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ink);
+  transition: background .15s ease, transform .15s ease;
+  padding: 0;
+}
+.icon-btn:hover{ background: var(--menu-hover-bg); }
+.icon-btn.accent{
+  color: #fff;
+  background: var(--accent-grad);
+  box-shadow: var(--shadow-soft);
+}
+.icon-btn.accent:hover{ transform: translateY(-1px) scale(1.04); box-shadow: var(--shadow-soft-hover); }
+
+.feed {
+  flex: 1;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 20px 8px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.empty-state{
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 70px 24px;
+  color: var(--empty-color);
+  gap: 14px;
+  background: var(--empty-bg);
+  border-radius: 28px;
+  border: 1px solid var(--empty-border);
+}
+.empty-state svg{ color: var(--empty-color); }
+.empty-state p{ margin: 0; font-size: 14px; font-weight: 600; color: var(--empty-color-strong); }
+.empty-state .btn-primary{ margin-top: 4px; }
+
+.post-card{
+  position: relative;
+  margin-bottom: 0 !important;
+}
+.t-component {
+  max-width: 100% !important;
+  border-radius: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: 1px solid var(--t-border) !important;
+}
+.t-component {
+  max-width: 100% !important;
+}
+.post-menu-btn{
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: rgba(0,0,0,0.1);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 30;
+  transition: background .15s ease;
+}
+.post-menu-btn:hover{ background: rgba(0,0,0,0.2); }
+.post-menu-btn::after{
+  content: "•••";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  color: #fff;
+  letter-spacing: 2px;
+  font-size: 13px;
+  pointer-events: none;
+}
+.post-menu-dropdown{
+  position: absolute;
+  top: 48px;
+  right: 12px;
+  min-width: 132px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  z-index: 50;
+  display: none;
+}
+.post-menu-dropdown.open{ display: block; }
+.post-menu-dropdown button{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+.post-menu-dropdown button:hover{ background: var(--dropdown-hover); }
+.post-menu-dropdown button.danger{ color: var(--danger); }
+.post-menu-dropdown button svg{ flex-shrink: 0; }
+
+.feed-footer{
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 600px;
+  margin: 12px auto 0;
+  padding: 18px 20px 44px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.btn-copy{
+  width: 100%;
+  padding: 15px;
+  border-radius: 999px;
+  border: none;
+  background: var(--accent-grad);
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.btn-copy:hover{ transform: translateY(-1px); box-shadow: var(--shadow-soft-hover); }
+.btn-copy:active{ transform: scale(0.98); }
+.btn-copy:disabled{ opacity: .35; cursor: not-allowed; box-shadow: none; transform: none; }
+.btn-reset-link{
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  opacity: .8;
+}
+.btn-reset-link:hover{ text-decoration: underline; }
+
+.btn-primary{
+  background: var(--accent-grad);
+  color: #fff;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.btn-primary:hover{ transform: translateY(-1px); box-shadow: var(--shadow-soft-hover); }
+.btn-outline{
+  background: var(--surface);
+  color: var(--ink);
+  border: 1.5px solid var(--border);
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-outline:hover{ background: var(--surface-soft); border-color: var(--accent-b); }
+
+.modal-overlay{
+  position: fixed;
+  inset: 0;
+  background: var(--modal-overlay-bg);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
+  padding: 0;
+}
+.modal-overlay.open{ opacity: 1; pointer-events: auto; }
+.modal-sheet{
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  background: var(--card-bg);
+  border-radius: 28px 28px 0 0;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(24px);
+  transition: transform .25s cubic-bezier(.25,.8,.25,1);
+  box-shadow: var(--shadow-soft);
+}
+.modal-overlay.open .modal-sheet{ transform: translateY(0); }
+@media (min-width: 620px){
+  .modal-overlay{ align-items: center; }
+  .modal-sheet{ border-radius: 26px; max-height: 86vh; }
+}
+.modal-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.modal-header h2{
+  font-family: 'Gowun Batang', 'Pretendard', serif;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.modal-body{
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 80px;
+}
+.quick-select-users {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  scrollbar-width: none;
+}
+.quick-select-users::-webkit-scrollbar {
+  display: none;
+}
+.btn-quick-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sub);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s ease;
+  flex-shrink: 0;
+}
+.btn-quick-user:hover {
+  background: var(--card-bg);
+  color: var(--ink);
+  border-color: var(--accent-b);
+  box-shadow: 0 4px 12px rgba(29, 155, 240, 0.1);
+}
+.btn-quick-user img {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--border);
+}
+.type-toggle {
+  display: flex;
+  gap: 8px;
+  background: var(--surface-soft);
+  padding: 6px;
+  border-radius: 16px;
+  margin-bottom: 4px;
+}
+.type-toggle label {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--sub);
+  padding: 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all .2s;
+  user-select: none;
+}
+.type-toggle input { display: none; }
+.type-toggle input:checked + label {
+  background: var(--card-bg);
+  color: var(--accent);
+  box-shadow: 0 4px 12px rgba(29, 155, 240, 0.15);
+}
+.type-toggle input:disabled + label {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.dynamic-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.field{ display: flex; flex-direction: column; gap: 6px; }
+.field label{ font-size: 12.5px; font-weight: 700; color: var(--sub); }
+.field-row{ display: flex; gap: 8px; align-items: flex-end; }
+.field-row .field{ flex: 1; }
+input[type="text"], input[type="number"], textarea{
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  background: var(--surface-soft);
+  color: var(--ink);
+  transition: border-color .15s ease, background .15s ease;
+}
+input[type="text"]:focus, input[type="number"]:focus, textarea:focus{ border-color: var(--accent-b); background: var(--card-bg); }
+.images-textarea{ height: 84px; resize: vertical; font-family: 'SFMono-Regular', Menlo, monospace; font-size: 12.5px; }
+
+.modal-actions{
+  display: flex;
+  gap: 10px;
+  padding-top: 10px;
+  position: absolute;
+  bottom: 20px;
+  width: 90%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card-bg);
+}
+.modal-actions button{ flex: 1; }
+
+.toast{
+  position: fixed;
+  left: 50%;
+  bottom: 30px;
+  transform: translate(-50%, 16px);
+  background: linear-gradient(135deg, #1d9bf0, #005c9e);
+  color: #fff;
+  padding: 13px 22px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+  z-index: 300;
+  box-shadow: 0 14px 32px rgba(29, 155, 240, .3);
+  max-width: 90vw;
+}
+.toast.show{ opacity: 1; transform: translate(-50%, 0); }
+.toast.toast-error{ background: linear-gradient(135deg, var(--danger), #d9527a); }
+</style>
+</head>
+<body>
+
+<div class="site">
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button type="button" class="icon-btn accent" id="cameraBtn" title="다크 모드로 전환" aria-label="다크 모드로 전환">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>
+      </button>
+      <h1 class="topbar-title" style="cursor: pointer;" onclick="location.href='index.html'" title="인스타 모드로 전환">X Feed</h1>
+      <button type="button" class="icon-btn accent" id="addBtn" title="항목 추가" aria-label="항목 추가">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="feed" id="feed">
+    <div class="empty-state" id="emptyState">
+      <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <p>게시물이 없습니다</p>
+      <button type="button" class="btn-primary" onclick="openModal()">+ 게시하기</button>
+    </div>
+  </main>
+
+  <div class="feed-footer">
+    <button type="button" class="btn-copy" id="copyBtn" onclick="copyCode()">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      코드 복사하기
+    </button>
+    <button type="button" class="btn-reset-link" onclick="resetAll()">전체 초기화</button>
+  </div>
+
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h2 id="modalTitle">새 항목</h2>
+      <button type="button" class="icon-btn" onclick="closeModal()" aria-label="닫기">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form class="modal-body" id="postForm" onsubmit="handleSubmit(event)">
+  <div class="type-toggle">
+    <input type="radio" name="f-type" id="type-profile" value="profile" checked onchange="toggleFields()">
+      <label for="type-profile">프로필</label>
+      
+      <input type="radio" name="f-type" id="type-tweet" value="tweet" onchange="toggleFields()">
+      <label for="type-tweet">트윗</label>
+    </div>
+
+    <div id="quickSelectUsers" class="quick-select-users"></div>
+
+    <div class="field">
+      <label>이름</label>
+        <input type="text" id="f-name" placeholder="User Name">
+      </div>
+      <div class="field">
+        <label>핸들 (@ 제외)</label>
+        <input type="text" id="f-handle" placeholder="username">
+      </div>
+      <div class="field">
+        <label>프로필 사진 URL</label>
+        <input type="text" id="f-profile" placeholder="https://...">
+      </div>
+
+      <div id="profileOnlyFields" class="dynamic-fields">
+        <div class="field">
+          <label>헤더 배너 URL</label>
+          <input type="text" id="f-banner" placeholder="https://...">
+        </div>
+        <div class="field">
+          <label>바이오</label>
+          <textarea id="f-bio" style="height: 60px;"></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>위치</label>
+            <input type="text" id="f-location" placeholder="Seoul, Korea">
+          </div>
+          <div class="field">
+            <label>링크</label>
+            <input type="text" id="f-link" placeholder="example.com">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>팔로잉</label>
+            <input type="text" id="f-following" placeholder="100">
+          </div>
+          <div class="field">
+            <label>팔로워</label>
+            <input type="text" id="f-followers" placeholder="200">
+          </div>
+        </div>
+      </div>
+
+      <div id="tweetOnlyFields" class="dynamic-fields" style="display: none;">
+        <div class="field">
+          <label>본문 텍스트 (하이퍼링크는 링크 or [이름](링크), @핸들 강조)</label>
+          <textarea id="f-text" style="height: 80px;" placeholder="트윗 내용..."></textarea>
+        </div>
+        <div class="field">
+          <label>이미지 주소 (엔터로 구분, 최대 4개, [괄호]로 감싸면 스포일러 처리)</label>
+          <textarea class="images-textarea" id="f-images" placeholder="https://example.com/img1.jpg&#10;[https://example.com/img2.jpg]"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-outline" onclick="closeModal()">취소</button>
+        <button type="submit" class="btn-primary" id="submitBtn">등록하기</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="replyModalOverlay">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h2 id="replyModalTitle">답글 등록하기</h2>
+      <button type="button" class="icon-btn" onclick="closeReplyModal()" aria-label="닫기">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form class="modal-body" id="replyForm" onsubmit="handleReplySubmit(event)">
+      <div id="replyQuickSelectUsers" class="quick-select-users"></div>
+
+      <div class="field">
+        <label>이름 (표시 이름)</label>
+        <input type="text" id="f-reply-name" placeholder="User Name">
+      </div>
+      <div class="field">
+        <label>핸들 (@ 제외)</label>
+        <input type="text" id="f-reply-handle" placeholder="username">
+      </div>
+      <div class="field">
+        <label>프로필 사진 URL</label>
+        <input type="text" id="f-reply-profile" placeholder="https://...">
+      </div>
+      <div class="field">
+        <label>본문 텍스트 ([이름](링크) 형식 지원, @닉네임 입력 시 멘션 강조)</label>
+        <textarea id="f-reply-text" style="height: 80px;" placeholder="답글 내용..."></textarea>
+      </div>
+      <div class="field">
+        <label>이미지 주소 (엔터로 구분, 최대 4개, [URL]로 감싸면 스포일러 처리)</label>
+        <textarea class="images-textarea" id="f-reply-images" placeholder="https://example.com/img1.jpg&#10;[https://example.com/img2.jpg]"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-outline" onclick="closeReplyModal()">취소</button>
+        <button type="submit" class="btn-primary" id="replySubmitBtn">등록하기</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastMsg">코드가 복사되었습니다</span>
+</div>
+
+<script>
+const baseStaticCss = `
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
+.t-gallery-container * { box-sizing: border-box !important; }
+.t-gallery-container .image-number-badge { display: none !important; }
+.t-gallery-container .image-number-wrapper { margin: 0 !important; aspect-ratio: 1 / 1 }
+
+.t-link { color: var(--t-link) !important; text-decoration: none !important; word-break: break-all !important; }
+.t-link:hover { text-decoration: underline !important; }
+
+.t-icon {
+  display: inline-block !important;
+  width: 18.5px !important;
+  height: 18.5px !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  opacity: 0.6 !important;
+  cursor: pointer !important;
+  transition: opacity 0.2s !important;
+}
+.t-icon:hover { opacity: 1 !important; }
+.t-icon.t-icon-bubble {
+  width: 17.5px !important;
+  height: 17.5px !important;
+  cursor: pointer !important;
+}
+
+.t-tabs-scroll { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+.t-tabs-scroll::-webkit-scrollbar { display: none !important; height: 0 !important; }
+
+.t-mention { color: var(--t-link) !important; font-weight: 500 !important; }
+
+.img-spoiler-overlay {
+  position: absolute !important;
+  inset: -0.1px !important;
+  z-index: 10 !important;
+  display: block !important;
+  border-radius: 0 !important;
+}
+.img-spoiler-overlay:not(.revealed),
+.img-spoiler-overlay:not(.revealed):hover {
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  background-color: transparent !important;
+  color: transparent !important;
+  border-radius: 0 !important;
+}
+.img-spoiler-overlay.revealed {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-color: transparent !important;
+  pointer-events: none !important;
+  border-radius: 0 !important;
+}
+
+.t-reply-thread summary { list-style: none !important; outline: none !important; }
+.t-reply-thread summary::-webkit-details-marker { display: none !important; }
+.t-reply-thread summary::before { display: none !important; }
+
+.t-reply-thread .t-reply-tweets .t-reply-item:not(:last-child) { border-bottom: 1px solid var(--t-border) !important; } 
+
+.t-follow-txt-active { display: none !important; } 
+
+.t-follow-btn {
+  background-color: var(--t-text) !important;
+  color: var(--t-bg) !important;
+}
+.t-follow-toggle:checked + .t-follow-btn {
+  background-color: var(--t-link) !important;
+  color: #ffffff !important;
+}
+.t-follow-toggle:checked + .t-follow-btn .t-follow-txt-default { display: none !important; }
+.t-follow-toggle:checked + .t-follow-btn .t-follow-txt-active { display: inline-block !important; }
+`;
+
+const styleEl = document.createElement('style');
+styleEl.innerHTML = baseStaticCss;
+document.head.appendChild(styleEl);
+const THEME_VARS = {
+    light: { 
+        bg: '#ffffff', text: '#0f1419', sub: '#536471', border: '#eff3f4', link: '#1d9bf0', bannerBg: '#cfd9de',
+        iconBubble: 'https://i.postimg.cc/tJJZYFWk/message-circle.png',
+        iconHeart: 'https://i.postimg.cc/Fzzd703V/heart.png',
+        iconBookmark: 'https://i.postimg.cc/J00DGjZq/bookmark.png',
+        iconHeartRed: 'https://i.postimg.cc/yNwsF9My/red-heart.png',
+        iconRetweet: 'https://i.postimg.cc/k4bzcdf3/repeat.png',
+        iconLoc: 'https://i.postimg.cc/1f78HdyZ/map.png',
+        iconLink: 'https://i.postimg.cc/gXLXXqCb/link.png'
+     },
+    dark:  { 
+        bg: '#000000', text: '#e7e9ea', sub: '#71767b', border: '#2f3336', link: '#1d9bf0', bannerBg: '#333639',
+        iconBubble: 'https://i.postimg.cc/wM8JXjLv/message-circle-d.png',
+        iconHeart: 'https://i.postimg.cc/L4LjHjFH/heart-d.png',
+        iconBookmark: 'https://i.postimg.cc/kgfx0936/bookmark-d.png',
+        iconHeartRed: 'https://i.postimg.cc/yNwsF9My/red-heart.png',
+        iconRetweet: 'https://i.postimg.cc/W1x77qKs/repeat-d.png',
+        iconLoc: 'https://i.postimg.cc/kBY2cH7P/map-d.png', 
+        iconLink: 'https://i.postimg.cc/8JfJJB2Q/link-d.png'
+     }
+};
+
+const DEFAULT_PROFILE = 'https://i.postimg.cc/nV5fB02t/default-profile-200x200.png';
+
+function renderQuickUsers(containerId, prefix) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const uniqueUsers = [];
+    const seenHandles = new Set();
+
+    [...posts].reverse().forEach(post => {
+        const handle = post.handle || 'username';
+        if (!seenHandles.has(handle)) {
+            seenHandles.add(handle);
+            uniqueUsers.push({
+                name: post.name || 'User Name',
+                handle: handle,
+                profile: post.profile || ''
+            });
+        }
+
+        if (post.replies && post.replies.length > 0) {
+            [...post.replies].reverse().forEach(reply => {
+                const replyHandle = reply.handle || 'username';
+                if (!seenHandles.has(replyHandle)) {
+                    seenHandles.add(replyHandle);
+                    uniqueUsers.push({
+                        name: reply.name || 'User Name',
+                        handle: replyHandle,
+                        profile: reply.profile || ''
+                    });
+                }
+            });
+        }
+    });
+
+    if (uniqueUsers.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'flex';
+    container.innerHTML = uniqueUsers.map(u => {
+        const safeName = u.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const safeHandle = u.handle.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const safeProfile = u.profile.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const displayProfile = u.profile || DEFAULT_PROFILE;
+        
+        return `<button type="button" class="btn-quick-user" onclick="fillQuickUser('${safeName}', '${safeHandle}', '${safeProfile}', '${prefix}')">
+            <img src="${displayProfile}" alt="">
+            ${safeName}
+        </button>`;
+    }).join('');
+}
+
+function fillQuickUser(name, handle, profile, prefix) {
+    document.getElementById(`f-${prefix}name`).value = name;
+    document.getElementById(`f-${prefix}handle`).value = handle;
+    document.getElementById(`f-${prefix}profile`).value = profile;
+}
+
+function formatLinks(text) {
+    let safe = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      safe = safe.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '<a href="$2" target="_blank" class="t-link">$1</a>');
+      safe = safe.replace(/(^|\s)(https?:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}(?:\/\S*)?)/g, '$1<a href="$2" target="_blank" class="t-link">$2</a>');
+      safe = safe.replace(/(^|[\s(])@([A-Za-z0-9_가-힣]+)/g, '$1<span class="t-mention">@$2</span>');
+    
+    return safe.replace(/\n/g, '<br>');
+}
+
+function parseImages(raw) {
+    return (raw || '').split('\n').map(u => u.trim()).filter(u => u !== '').map(url => {
+        const isSpoiler = url.startsWith('[') && url.endsWith(']');
+        return { url: isSpoiler ? url.slice(1, -1) : url, isSpoiler };
+    });
+}
+
+function buildImageGrid(images, n, marginTop) {
+    let gridStyle = `display: grid !important; gap: 2px !important; border-radius: 16px !important; overflow: hidden !important; border: 1px solid var(--t-border) !important; margin-top: ${marginTop} !important;`;
+    if (n === 1) gridStyle += " grid-template-columns: 1fr !important;";
+    else if (n === 2) gridStyle += " grid-template-columns: 1fr 1fr !important; aspect-ratio: 16/9 !important;";
+    else gridStyle += " grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr 1fr !important; aspect-ratio: 16/9 !important;";
+
+    let html = `      <div style="${gridStyle}">\n`;
+    for (let i = 0; i < n; i++) {
+        let cellStyle = `display: grid; position: relative !important; width: 100% !important; height: 100% !important; overflow: hidden !important;`;
+        if (n === 3 && i === 0) cellStyle += ` grid-row: span 2 !important;`;
+        html += `        <div style="${cellStyle}">\n`;
+        html += `          <img src="${images[i].url}" style="width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important; margin: 0 !important;">\n`;
+        if (images[i].isSpoiler) {
+            html += `          <span class="spoiler img-spoiler-overlay" data-spoiler="true"></span>\n`;
+        }
+        html += `        </div>\n`;
+    }
+    html += `      </div>\n`;
+    return html;
+}
+
+// ----------------------------------------
+// 프로필
+// ----------------------------------------
+function buildProfileMarkup(post, radius) {
+    const theme = THEME_VARS[currentTheme] || THEME_VARS.light;
+    const pid = 'p' + Math.random().toString(36).substr(2, 6);
+    
+    const name = post.name || 'User Name';
+    const handle = (post.handle || 'username').replace(/^@/, '');
+    const profilePic = post.profile || DEFAULT_PROFILE;
+    
+    const bannerStyle = post.banner 
+        ? `background-image: url('${post.banner}') !important; background-size: cover !important; background-position: center !important;` 
+        : `background-color: var(--t-bannerBg) !important;`;
+        
+    const bioHtml = formatLinks(post.bio || '');
+
+    let html = `\n  <!-- [프로필: @${handle}] -->\n`;
+    html += `  <div id="prof_${pid}" class="t-component" style="background-color: var(--t-bg) !important; border-bottom: 1px solid var(--t-border) !important; border-radius: ${radius} !important; overflow: hidden !important; width: 100% !important;">\n`;
+    
+    html += `    <div style="height: auto !important; aspect-ratio: 3 / 1; width: 100% !important; ${bannerStyle}"></div>\n`;
+    
+    html += `    <div style="display: flex !important; justify-content: space-between !important; padding: 0 16px !important; align-items: flex-start !important;">\n`;
+    html += `      <div style="margin-top: calc(clamp(60px, 20vw, 90px) * -0.5) !important; flex-shrink: 0 !important;">\n`;
+    html += `        <img src="${profilePic}" style="width: clamp(60px, 20vw, 90px) !important; height: clamp(60px, 20vw, 90px) !important; border-radius: 50% !important; border: 4px solid var(--t-bg) !important; background: var(--t-bg) !important; object-fit: cover !important; display: block !important; margin: 0 !important;">\n`;
+    html += `      </div>\n`;
+    html += `      <div style="margin-top: 12px !important;">\n`;
+    html += `        <label style="cursor: pointer !important; display: block !important;">\n`;
+    html += `          <input type="checkbox" style="display: none !important;" class="t-follow-toggle">\n`;
+    html += `          <div class="t-follow-btn" style="font-weight: 700 !important; font-size: 15px !important; padding: 0 16px !important; height: 34px !important; display: flex !important; align-items: center !important; justify-content: center !important; border-radius: 17px !important; font-family: inherit !important; transition: background-color 0.2s !important;">\n`;
+    html += `            <span class="t-follow-txt-default">Follow</span>\n`;
+    html += `            <span class="t-follow-txt-active">Following</span>\n`;
+    html += `          </div>\n`;
+    html += `        </label>\n`;
+    html += `      </div>\n`;
+    html += `    </div>\n`;
+    
+    html += `    <div style="padding: 12px 16px !important;">\n`;
+    html += `      <h2 style="margin: 0 !important; font-size: 20px !important; font-weight: 800 !important; color: var(--t-text) !important; line-height: 1.2 !important;">${name}</h2>\n`;
+    html += `      <div style="color: var(--t-sub) !important; font-size: 15px !important; margin-top: 2px !important;">@${handle}</div>\n`;
+    
+    if (bioHtml) {
+        html += `      <div style="margin-top: 12px !important; font-size: 15px !important; color: var(--t-text) !important; line-height: 1.5 !important; word-break: break-word !important;">${bioHtml}</div>\n`;
+    }
+    
+    if (post.location || post.link) {
+        html += `      <div style="display: flex !important; flex-wrap: wrap !important; gap: 12px !important; margin-top: 12px !important; color: var(--t-sub) !important; font-size: 15px !important; align-items: center !important;">\n`;
+        if (post.location) html += `        <span style="display: flex !important; align-items: center !important; gap: 4px !important;"><img src="${theme.iconLoc}"> ${post.location}</span>\n`;
+        if (post.link) html += `        <span style="display: flex !important; align-items: center !important; gap: 4px !important;"><img src="${theme.iconLink}"> <a href="${post.link.startsWith('http') ? post.link : 'https://'+post.link}" target="_blank" class="t-link">${post.link.replace(/^https?:\/\//, '')}</a></span>\n`;
+        html += `      </div>\n`;
+    }
+    
+    html += `      <div style="display: flex !important; gap: 20px !important; margin-top: 12px !important; font-size: 14.5px !important;">\n`;
+    html += `        <span><b style="color: var(--t-text) !important;">${post.following || 0}</b> <span style="color: var(--t-sub) !important;">Following</span></span>\n`;
+    html += `        <span><b style="color: var(--t-text) !important;">${post.followers || 0}</b> <span style="color: var(--t-sub) !important;">Followers</span></span>\n`;
+    html += `      </div>\n`;
+    html += `    </div>\n`;
+    
+    html += `    <div class="t-tabs-scroll" style="display: flex !important; border-bottom: 1px solid var(--t-border) !important; font-size: 15px !important; font-weight: 500 !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch !important;">\n`;
+    const tabs = ['게시물', '답글', '미디어', '마음에 들어요'];
+    tabs.forEach((t, i) => {
+        const isActive = i === 0;
+        const color = isActive ? 'var(--t-text)' : 'var(--t-sub)';
+        const bold = isActive ? '700' : '500';
+        const borderB = isActive ? '4px solid var(--t-link)' : '4px solid transparent';
+        html += `      <div style="flex: 0 0 auto !important; white-space: nowrap !important; padding: 0 18px !important; text-align: center !important; cursor: pointer !important; transition: background 0.2s !important; display: flex !important; justify-content: center !important;">\n`;
+        html += `        <div style="padding: 16px 0 !important; color: ${color} !important; font-weight: ${bold} !important; border-bottom: ${borderB} !important; display: inline-block !important;">${t}</div>\n`;
+        html += `      </div>\n`;
+    });
+    html += `    </div>\n`;
+    html += `  </div>\n`;
+    
+    return { html, css: '' };
+}
+
+// ----------------------------------------
+// 트윗 (게시글)
+// ----------------------------------------
+function buildTweetMarkup(post, radius, preview) {
+    const pid = 't' + Math.random().toString(36).substr(2, 6);
+    const name = post.name || 'User Name';
+    const handle = (post.handle || 'username').replace(/^@/, '');
+    const profilePic = post.profile || DEFAULT_PROFILE;
+    
+    const textHtml = formatLinks(post.text || '');
+    const images = parseImages(post.images);
+    const n = Math.min(images.length, 4);
+    const replies = post.replies || [];
+    const replyCount = replies.length;
+
+    let html = `\n  <!-- [트윗: @${handle}] -->\n`;
+    html += `  <div id="twt_${pid}" class="t-component" style="background-color: var(--t-bg) !important; border-bottom: 1px solid var(--t-border) !important; border-radius: ${radius} !important; padding: 16px !important; display: flex !important; flex-direction: row !important; gap: 12px !important; width: 100% !important;">\n`;
+      html += `    <div style="flex-shrink: 0 !important;">\n`;
+    html += `      <img src="${profilePic}" style="width: clamp(36px, 10vw, 44px) !important; height: clamp(36px, 10vw, 44px) !important; border-radius: 50% !important; object-fit: cover !important; display: block !important; margin: 0 !important;">\n`;
+    html += `    </div>\n`;
+      html += `    <div style="flex: 1 !important; min-width: 0 !important;">\n`;
+    html += `      <div style="display: flex !important; align-items: center !important; font-size: 15px !important; line-height: 1.2 !important;">\n`;
+    html += `        <b style="color: var(--t-text) !important; margin-right: 4px !important; text-overflow: ellipsis !important; overflow: hidden !important; white-space: nowrap !important; max-width: 50% !important;">${name}</b>\n`;
+    html += `        <span style="color: var(--t-sub) !important; text-overflow: ellipsis !important; overflow: hidden !important; white-space: nowrap !important;">@${handle}</span>\n`;
+    html += `      </div>\n`;
+    
+    if (textHtml) {
+        html += `      <div style="margin-top: 4px !important; font-size: 15px !important; color: var(--t-text) !important; line-height: 1.5 !important; word-break: break-word !important;">${textHtml}</div>\n`;
+    }
+    
+    if (n > 0) html += buildImageGrid(images, n, '12px');
+    
+    html += `      <div style="display: flex !important; justify-content: space-between !important; margin-top: 12px !important;">\n`;
+    html += `        <span style="display: flex !important; align-items: center !important; gap: 4px !important;">\n`;
+    html += `          <span class="t-icon t-icon-bubble"${preview ? ` onclick="openReplyModal('${post.id}')"` : ''}></span>\n`;
+    if (replyCount > 0) {
+        html += `          <span class="t-reply-count" style="font-size: 12.5px !important; color: var(--t-sub) !important; font-weight: 600 !important;">${replyCount}</span>\n`;
+    }
+    html += `        </span>\n`;
+    html += `        <span class="t-icon t-icon-retweet"></span>\n`;
+    html += `        <label style="cursor: pointer !important; display: inline-block !important; line-height: 1 !important;"><input type="checkbox" style="display: none !important;" class="t-like-toggle"><span class="t-icon t-icon-heart"></span></label>\n`;
+    html += `        <span class="t-icon t-icon-bookmark"></span>\n`;
+    html += `      </div>\n`;
+
+    let css = '';
+    if (replyCount > 0) {
+        html += `      <details class="t-reply-thread" style="margin-top: 12px !important; border-top: 1px solid var(--t-border) !important; padding-top: 10px !important;"${preview ? ' open' : ''}>\n`;
+        html += `        <summary style="cursor: pointer !important; color: var(--t-link) !important; font-size: 13px !important; font-weight: 700 !important;">\n`;
+        html += `          <span class="t-rep-closed-${pid}">답글 ${replyCount}개 보기</span>\n`;
+        html += `          <span class="t-rep-opened-${pid}" style="display: none !important;">답글 접기</span>\n`;
+        html += `        </summary>\n`;
+        html += `        <div class="t-reply-tweets" style="display: flex !important; flex-direction: column !important; gap: 10px !important; margin-top: 10px !important;">\n`;
+        replies.forEach((reply, idx) => {
+            const isLast = idx === replies.length - 1;
+            html += buildReplyMarkup(post, reply, preview, isLast);
+        });
+        html += `        </div>\n`;
+        html += `      </details>\n`;
+
+        css += `#twt_${pid} .t-reply-thread[open] .t-rep-closed-${pid} { display: none !important; }\n`;
+        css += `#twt_${pid} .t-reply-thread:not([open]) .t-rep-opened-${pid} { display: none !important; }\n`;
+    }
+
+    html += `    </div>\n`;
+    html += `  </div>\n`;
+    
+    return { html, css };
+}
+
+// ----------------------------------------
+// 답글
+// ----------------------------------------
+function buildReplyMarkup(post, reply, preview, targetHandle) {
+    const name = reply.name || 'User Name';
+    const handle = (reply.handle || 'username').replace(/^@/, '');
+    const profilePic = reply.profile || DEFAULT_PROFILE;
+    const textHtml = formatLinks(reply.text || '');
+    const images = parseImages(reply.images);
+    const n = Math.min(images.length, 4);
+
+    let html = `          <div class="t-reply-item" style="position: relative !important; display: flex !important; gap: 10px !important; padding: 8px 0px !important; border-radius: 0px !important; background: var(--t-bg) !important;">\n`;
+
+    if (preview) {
+        html += `            <div style="position: absolute !important; top: 8px !important; right: 8px !important; display: flex !important; gap: 4px !important; z-index: 5 !important;">\n`;
+        html += `              <button type="button" onclick="openReplyModal('${post.id}','${reply.id}')" style="width: 26px !important; height: 26px !important; border: none !important; border-radius: 50% !important; background: rgba(127,127,127,0.16) !important; cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; color: var(--t-text) !important;">${iconEdit}</button>\n`;
+        html += `              <button type="button" onclick="deleteReply('${post.id}','${reply.id}')" style="width: 26px !important; height: 26px !important; border: none !important; border-radius: 50% !important; background: rgba(127,127,127,0.16) !important; cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; color: var(--t-text) !important;">${iconTrash}</button>\n`;
+        html += `            </div>\n`;
+    }
+
+    html += `            <img src="${profilePic}" style="width: 36px !important; height: 36px !important; border-radius: 50% !important; object-fit: cover !important; flex-shrink: 0 !important; display: block !important; margin: 0 !important;">\n`;
+    html += `            <div style="flex: 1 !important; min-width: 0 !important;">\n`;
+    html += `              <div style="display: flex !important; align-items: center !important; font-size: 14px !important; line-height: 1.2 !important;">\n`;
+    html += `                <b style="color: var(--t-text) !important; margin-right: 4px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; max-width: 45% !important;">${name}</b>\n`;
+    html += `                <span style="color: var(--t-sub) !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important;">@${handle}</span>\n`;
+    html += `              </div>\n`;
+    if (textHtml) {
+        html += `              <div style="margin-top: 2px !important; font-size: 14px !important; color: var(--t-text) !important; line-height: 1.5 !important; word-break: break-word !important;">${textHtml}</div>\n`;
+    }
+    if (n > 0) html += buildImageGrid(images, n, '10px');
+    html += `              <div style="display: flex !important; justify-content: space-between !important; margin-top: 10px !important;">\n`;
+const safeReplyHandle = (reply.handle || '').replace(/'/g, "\\'");
+html += `                <span class="t-icon t-icon-bubble"${preview ? ` onclick="openReplyModal('${post.id}', null, '${safeReplyHandle}')" style="cursor: pointer !important;"` : ' style="cursor: default !important;"'}></span>\n`;
+    html += `                <span class="t-icon t-icon-retweet"></span>\n`;
+    html += `                <label style="cursor: pointer !important; display: inline-block !important; line-height: 1 !important;"><input type="checkbox" style="display: none !important;" class="t-like-toggle"><span class="t-icon t-icon-heart"></span></label>\n`;
+    html += `                <span class="t-icon t-icon-bookmark"></span>\n`;
+    html += `              </div>\n`;
+    html += `            </div>\n`;
+    html += `          </div>\n`;
+
+    return html;
+}
+
+function generateFinalHtml() {
+    const theme = THEME_VARS[currentTheme] || THEME_VARS.light;
+    let dynamicStyles = baseStaticCss;
+    
+    dynamicStyles += `
+.t-gallery-container {
+    --t-bg: ${theme.bg};
+    --t-text: ${theme.text};
+    --t-sub: ${theme.sub};
+    --t-border: ${theme.border};
+    --t-link: ${theme.link};
+    --t-bannerBg: ${theme.bannerBg};
+}
+.t-icon-bubble { background-image: url('${theme.iconBubble}') !important; }
+.t-icon-retweet { background-image: url('${theme.iconRetweet}') !important; }
+.t-icon-heart { background-image: url('${theme.iconHeart}') !important; }
+.t-icon-bookmark { background-image: url('${theme.iconBookmark}') !important; }
+.t-like-toggle:checked ~ .t-icon-heart { background-image: url('${theme.iconHeartRed}') !important; opacity: 1 !important; }
+`;
+
+    let bodyHtml = `\n<div class="t-gallery-container" style="width: 100%; max-width: 900px !important; margin: 0 auto !important; font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif !important; box-sizing: border-box !important;">\n`;
+
+    const sortedPosts = sortPostsWithProfileFirst(posts);
+    sortedPosts.forEach((post, idx) => {
+        const radius = getCardRadius(idx, sortedPosts.length);
+        let markup;
+        if (post.type === 'profile') markup = buildProfileMarkup(post, radius);
+        else markup = buildTweetMarkup(post, radius);
+        dynamicStyles += markup.css;
+        bodyHtml += markup.html;
+    });
+
+    bodyHtml += "\n</div>";
+
+    return `<style>\n${dynamicStyles}\n</style>\n${bodyHtml}`;
+}
+
+const STORAGE_KEY = 'twgen-v2';
+const THEME_KEY = 'twgen-theme-v2';
+let posts = [];
+let editingId = null;
+let modalIsCreatingNew = true;
+let currentTheme = 'light';
+let replyParentId = null;
+let replyEditingId = null;
+
+function openReplyModal(postId, replyId, targetHandle) {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    replyParentId = postId;
+    replyEditingId = replyId || null;
+    const reply = replyEditingId ? (post.replies || []).find(r => r.id === replyEditingId) : null;
+
+    document.getElementById('replyModalTitle').textContent = reply ? '답글 수정하기' : '답글 등록하기';
+    document.getElementById('replySubmitBtn').textContent = reply ? '수정 완료' : '등록하기';
+
+    renderQuickUsers('replyQuickSelectUsers', 'reply-');
+
+    document.getElementById('f-reply-name').value = reply ? (reply.name || '') : '';
+    document.getElementById('f-reply-handle').value = reply ? (reply.handle || '') : '';
+    document.getElementById('f-reply-profile').value = reply ? (reply.profile || '') : '';
+    
+    let defaultText = '';
+    if (!reply) {
+        const mention = targetHandle || post.handle || '';
+        if (mention) {
+            defaultText = `@${mention.replace(/^@/, '')} `;
+        }
+    }
+    document.getElementById('f-reply-text').value = reply ? (reply.text || '') : defaultText;
+    // ----------------------------------------
+
+    document.getElementById('f-reply-images').value = reply ? (reply.images || '') : '';
+
+    document.getElementById('replyModalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.getElementById('f-reply-name').focus(), 100);
+}
+
+function closeReplyModal() {
+    document.getElementById('replyModalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+    replyParentId = null;
+    replyEditingId = null;
+}
+
+function handleReplySubmit(e) {
+    e.preventDefault();
+    const post = posts.find(p => p.id === replyParentId);
+    if (!post) { closeReplyModal(); return; }
+    if (!post.replies) post.replies = [];
+
+    const data = {
+        name: document.getElementById('f-reply-name').value.trim(),
+        handle: document.getElementById('f-reply-handle').value.trim(),
+        profile: document.getElementById('f-reply-profile').value.trim(),
+        text: document.getElementById('f-reply-text').value.trim(),
+        images: document.getElementById('f-reply-images').value.trim()
+    };
+
+    if (replyEditingId) {
+        const idx = post.replies.findIndex(r => r.id === replyEditingId);
+        if (idx > -1) post.replies[idx] = { ...post.replies[idx], ...data };
+    } else {
+        post.replies.push({ id: uid(), ...data });
+    }
+
+    saveState();
+    renderFeed();
+    closeReplyModal();
+}
+
+function deleteReply(postId, replyId) {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    if (!confirm('이 답글을 삭제할까요?')) return;
+    post.replies = (post.replies || []).filter(r => r.id !== replyId);
+    saveState();
+    renderFeed();
+}
+
+const iconEdit = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"/></svg>`;
+const iconTrash = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`;
+
+const iconMoonStar = `<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/><path d="M20 3v4"/><path d="M22 5h-4"/></svg>`;
+const iconSun = `<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
+
+function applyTheme(theme) {
+    currentTheme = theme === 'dark' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+
+    const cameraBtn = document.getElementById('cameraBtn');
+    if (cameraBtn) {
+        cameraBtn.innerHTML = currentTheme === 'dark' ? iconSun : iconMoonStar;
+        const label = currentTheme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환';
+        cameraBtn.title = label;
+        cameraBtn.setAttribute('aria-label', label);
+    }
+}
+
+function toggleTheme() {
+    const next = currentTheme === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    applyTheme(next);
+    renderFeed();
+}
+
+function loadTheme() {
+    let saved = 'light';
+    try { saved = localStorage.getItem(THEME_KEY) || 'light'; } catch (e) {}
+    applyTheme(saved);
+}
+
+function uid() {
+    return 'item_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function sortPostsWithProfileFirst(list) {
+    return [...list].sort((a, b) => {
+        if (a.type === 'profile' && b.type !== 'profile') return -1;
+        if (a.type !== 'profile' && b.type === 'profile') return 1;
+        return 0;
+    });
+}
+
+function getCardRadius(index, total) {
+    if (total <= 1) return '16px'; 
+    if (index === 0) return '16px 16px 0 0';  
+    if (index === total - 1) return '0 0 16px 16px'; 
+    return '0';     
+}
+
+function renderFeed() {
+    const feed = document.getElementById('feed');
+    const empty = document.getElementById('emptyState');
+
+    feed.querySelectorAll('.post-card').forEach(el => el.remove());
+
+    empty.style.display = posts.length === 0 ? 'flex' : 'none';
+      const sortedPosts = sortPostsWithProfileFirst(posts);
+      feed.style.gap = sortedPosts.length > 1 ? '0px' : '22px';
+      const theme = THEME_VARS[currentTheme] || THEME_VARS.light;
+    const wrapStyle = `
+        --t-bg: ${theme.bg};
+        --t-text: ${theme.text};
+        --t-sub: ${theme.sub};
+        --t-border: ${theme.border};
+        --t-link: ${theme.link};
+        --t-bannerBg: ${theme.bannerBg};
+    `;
+
+    sortedPosts.forEach((post, idx) => {
+        const radius = getCardRadius(idx, sortedPosts.length);
+        let markup;
+        if (post.type === 'profile') markup = buildProfileMarkup(post, radius);
+        else markup = buildTweetMarkup(post, radius, true);
+        
+        const card = document.createElement('div');
+        card.className = 'post-card t-gallery-container';
+        card.style.cssText = wrapStyle;
+        card.dataset.id = post.id;
+        card.innerHTML = `
+            <button type="button" class="post-menu-btn" onclick="toggleMenu(event,'${post.id}')" aria-label="옵션"></button>
+            <div class="post-menu-dropdown" id="menu-${post.id}">
+                <button type="button" onclick="editPost('${post.id}')">${iconEdit} 수정</button>
+                <button type="button" class="danger" onclick="deletePost('${post.id}')">${iconTrash} 삭제</button>
+            </div>
+            <style>
+                #prof_${post.id} .t-icon, #twt_${post.id} .t-icon { filter: drop-shadow(0 0 1px rgba(0,0,0,0.1)); }
+                .t-icon-bubble { background-image: url('${theme.iconBubble}') !important; }
+                .t-icon-retweet { background-image: url('${theme.iconRetweet}') !important; }
+                .t-icon-heart { background-image: url('${theme.iconHeart}') !important; }
+                .t-icon-bookmark { background-image: url('${theme.iconBookmark}') !important; }
+                .t-like-toggle:checked ~ .t-icon-heart { background-image: url('${theme.iconHeartRed}') !important; opacity: 1 !important; }
+                ${markup.css}
+            </style>
+            ${markup.html}
+        `;
+        feed.appendChild(card);
+    });
+
+    document.getElementById('copyBtn').disabled = posts.length === 0;
+}
+
+function toggleMenu(e, id) {
+    e.preventDefault();
+    e.stopPropagation();
+    const dropdown = document.getElementById('menu-' + id);
+    const willOpen = !dropdown.classList.contains('open');
+    document.querySelectorAll('.post-menu-dropdown.open').forEach(d => d.classList.remove('open'));
+    if (willOpen) dropdown.classList.add('open');
+}
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.post-menu-dropdown') && !e.target.closest('.post-menu-btn')) {
+        document.querySelectorAll('.post-menu-dropdown.open').forEach(d => d.classList.remove('open'));
+    }
+});
+
+function toggleFields() {
+    const type = document.querySelector('input[name="f-type"]:checked').value;
+    document.getElementById('profileOnlyFields').style.display = type === 'profile' ? 'flex' : 'none';
+    document.getElementById('tweetOnlyFields').style.display = type === 'tweet' ? 'flex' : 'none';
+
+    if (modalIsCreatingNew) {
+        const existingProfile = getExistingProfile();
+        if (type === 'profile' && existingProfile) {
+              editingId = existingProfile.id;
+            fillFormFields(existingProfile);
+        } else if (type === 'tweet' && editingId) {
+              editingId = null;
+            fillFormFields(null);
+        }
+    }
+}
+
+function editPost(id) {
+    document.querySelectorAll('.post-menu-dropdown.open').forEach(d => d.classList.remove('open'));
+    const post = posts.find(p => p.id === id);
+    if (post) openModal(post);
+}
+
+function deletePost(id) {
+    document.querySelectorAll('.post-menu-dropdown.open').forEach(d => d.classList.remove('open'));
+    if (!confirm('이 항목을 삭제할까요?')) return;
+    posts = posts.filter(p => p.id !== id);
+    saveState();
+    renderFeed();
+}
+
+function getExistingProfile() {
+    return posts.find(p => p.type === 'profile') || null;
+}
+
+function fillFormFields(post) {
+    document.getElementById('modalTitle').textContent = post ? '수정하기' : '새로 만들기';
+    document.getElementById('submitBtn').textContent = post ? '수정 완료' : '등록하기';
+
+    document.getElementById('f-name').value = post ? (post.name || '') : '';
+    document.getElementById('f-handle').value = post ? (post.handle || '') : '';
+    document.getElementById('f-profile').value = post ? (post.profile || '') : '';
+
+    const now = new Date();
+    const autoFollowers = now.getHours() * 10 + now.getMinutes();
+    const autoFollowing = now.getDate() * 7;
+
+    document.getElementById('f-banner').value = post ? (post.banner || '') : '';
+    document.getElementById('f-bio').value = post ? (post.bio || '') : '';
+    document.getElementById('f-location').value = post ? (post.location || '') : '';
+    document.getElementById('f-link').value = post ? (post.link || '') : '';
+    document.getElementById('f-following').value = post ? (post.following || '') : (editingId ? '' : autoFollowing);
+    document.getElementById('f-followers').value = post ? (post.followers || '') : (editingId ? '' : autoFollowers);
+
+    document.getElementById('f-text').value = post ? (post.text || '') : '';
+    document.getElementById('f-images').value = post ? (post.images || '') : '';
+}
+
+function openModal(post) {
+    editingId = post ? post.id : null;
+    modalIsCreatingNew = !post;
+
+    const existingProfile = !post ? getExistingProfile() : null;
+    const type = post ? (post.type || 'profile') : (existingProfile ? 'tweet' : 'profile');
+    document.getElementById('type-' + type).checked = true;
+
+    document.getElementById('type-profile').disabled = !modalIsCreatingNew;
+    document.getElementById('type-tweet').disabled = !modalIsCreatingNew;
+
+    fillFormFields(post);
+    toggleFields();
+
+    renderQuickUsers('quickSelectUsers', '');
+
+    document.getElementById('modalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.getElementById('f-name').focus(), 100);
+}
+
+function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+    editingId = null;
+    document.getElementById('type-profile').disabled = false;
+    document.getElementById('type-tweet').disabled = false;
+}
+
+function handleSubmit(e) {
+    e.preventDefault();
+    const type = document.querySelector('input[name="f-type"]:checked').value;
+    
+    const data = {
+        type: type,
+        name: document.getElementById('f-name').value.trim(),
+        handle: document.getElementById('f-handle').value.trim(),
+        profile: document.getElementById('f-profile').value.trim(),
+        
+        banner: document.getElementById('f-banner').value.trim(),
+        bio: document.getElementById('f-bio').value.trim(),
+        location: document.getElementById('f-location').value.trim(),
+        link: document.getElementById('f-link').value.trim(),
+        following: document.getElementById('f-following').value.trim(),
+        followers: document.getElementById('f-followers').value.trim(),
+        
+        text: document.getElementById('f-text').value.trim(),
+        images: document.getElementById('f-images').value.trim()
+    };
+
+    if (editingId) {
+        const idx = posts.findIndex(p => p.id === editingId);
+        if (idx > -1) {
+            data.type = posts[idx].type;
+            posts[idx] = { ...posts[idx], ...data };
+        }
+    } else {
+        posts.push({ id: uid(), ...data });
+    }
+
+    saveState();
+    renderFeed();
+    closeModal();
+}
+
+function resetAll() {
+    if (posts.length === 0) return;
+    if (!confirm('저장된 모든 항목을 삭제할까요? 이 작업은 되돌릴 수 없습니다.')) return;
+    posts = [];
+    saveState();
+    renderFeed();
+}
+
+let toastTimer = null;
+function showToast(msg, isError) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    toast.classList.toggle('toast-error', !!isError);
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+async function copyCode() {
+    if (posts.length === 0) {
+        showToast('먼저 항목을 추가해주세요', true);
+        return;
+    }
+    const finalHtml = generateFinalHtml();
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(finalHtml);
+        } else {
+            const ta = document.createElement('textarea');
+            ta.value = finalHtml;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        }
+        showToast('코드가 복사되었습니다');
+    } catch (err) {
+        showToast('복사에 실패했어요', true);
+    }
+}
+
+function saveState() {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+    } catch (e) {
+        console.warn('저장 실패:', e);
+    }
+}
+
+function loadState() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) posts = JSON.parse(raw) || [];
+    } catch (e) {
+        console.warn('불러오기 실패:', e);
+    }
+    renderFeed();
+}
+
+document.getElementById('cameraBtn').addEventListener('click', () => toggleTheme());
+document.getElementById('addBtn').addEventListener('click', () => openModal());
+
+window.addEventListener('DOMContentLoaded', () => {
+  loadTheme();
+  loadState();
+});
+</script>
+</body>
+</html>

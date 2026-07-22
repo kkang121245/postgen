@@ -1,6 +1,6 @@
 {
-  "name": "인스타 글꾸 메이커",
-  "short_name": "인스타",
+  "name": "글꾸 메이커",
+  "short_name": "글꾸",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#fdf1f6",
