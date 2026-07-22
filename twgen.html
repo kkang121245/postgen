@@ -933,7 +933,7 @@ function buildProfileMarkup(post, radius) {
         const color = isActive ? 'var(--t-text)' : 'var(--t-sub)';
         const bold = isActive ? '700' : '500';
         const borderB = isActive ? '4px solid var(--t-link)' : '4px solid transparent';
-        html += `      <div style="flex: 0 0 auto !important; white-space: nowrap !important; padding: 0 18px !important; text-align: center !important; cursor: pointer !important; transition: background 0.2s !important; display: flex !important; justify-content: center !important;">\n`;
+        html += `      <div style="width: 100%; white-space: nowrap !important; padding: 0 18px !important; text-align: center !important; cursor: pointer !important; transition: background 0.2s !important; display: flex !important; justify-content: center !important;">\n`;
         html += `        <div style="padding: 16px 0 !important; color: ${color} !important; font-weight: ${bold} !important; border-bottom: ${borderB} !important; display: inline-block !important;">${t}</div>\n`;
         html += `      </div>\n`;
     });
@@ -1092,8 +1092,8 @@ function generateFinalHtml() {
     return `<style>\n${dynamicStyles}\n</style>\n${bodyHtml}`;
 }
 
-const STORAGE_KEY = 'twgen-v2';
-const THEME_KEY = 'twgen-theme-v2';
+const STORAGE_KEY = 'twgen-v3';
+const THEME_KEY = 'twgen-theme-v3';
 let posts = [];
 let editingId = null;
 let modalIsCreatingNew = true;
