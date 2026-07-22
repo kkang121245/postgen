@@ -613,6 +613,10 @@ input[type="text"]:focus, input[type="number"]:focus, textarea:focus{ border-col
           <label>이미지 주소 (엔터로 구분, 최대 4개, [괄호]로 감싸면 스포일러 처리)</label>
           <textarea class="images-textarea" id="f-images" placeholder="https://example.com/img1.jpg&#10;[https://example.com/img2.jpg]"></textarea>
         </div>
+        <div class="field" style="flex-direction: row; align-items: center; gap: 8px; margin-top: 4px;">
+          <input type="checkbox" id="f-is-liked" style="width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer;">
+          <label for="f-is-liked" style="cursor: pointer; margin: 0; font-weight: 600; color: var(--ink);">마음함으로 이동</label>
+        </div>
       </div>
 
       <div class="modal-actions">
@@ -1045,7 +1049,8 @@ function buildTweetMarkup(post, radius, preview, cid) {
     }
     html += `        </span>\n`;
     html += `        <span class="t-icon t-icon-retweet"${preview ? ` onclick="openQuoteModal('${post.id}')"` : ''} style="${preview ? 'cursor: pointer !important;' : ''}"></span>\n`;
-    html += `        <label style="cursor: pointer !important; display: inline-block !important; line-height: 1 !important;"><input type="checkbox" style="display: none !important;" class="t-like-toggle"><span class="t-icon t-icon-heart"></span></label>\n`;
+    const isLikedChecked = (post.forceLike || post.isLiked) ? ' checked' : '';
+    html += `        <label style="cursor: pointer !important; display: inline-block !important; line-height: 1 !important;"><input type="checkbox" style="display: none !important;" class="t-like-toggle"${isLikedChecked}><span class="t-icon t-icon-heart"></span></label>\n`;
     html += `        <span class="t-icon t-icon-bookmark"></span>\n`;
     html += `      </div>\n`;
 
@@ -1143,9 +1148,6 @@ function generateFinalHtml() {
     font-weight: 500 !important;
     border-bottom: 4px solid transparent !important;
 }
-#${cid}_tab_replies:checked ~ .t-tweet-card:not([data-has-replies="true"]) { display: none !important; }
-#${cid}_tab_media:checked ~ .t-tweet-card:not([data-has-media="true"]) { display: none !important; }
-#${cid}_tab_likes:checked ~ .t-tweet-card:not(:has(.t-like-toggle:checked)) { display: none !important; }
 
 #${cid}_tab_posts:checked ~ * .t-tab-label[data-target="${cid}_tab_posts"],
 #${cid}_tab_replies:checked ~ * .t-tab-label[data-target="${cid}_tab_replies"],
@@ -1155,32 +1157,94 @@ function generateFinalHtml() {
     font-weight: 700 !important;
     border-bottom: 4px solid var(--t-link) !important;
 }
+
+.t-panel { display: none !important; width: 100% !important; flex-direction: column !important; }
+#${cid}_tab_posts:checked ~ .t-panel-posts,
+#${cid}_tab_replies:checked ~ .t-panel-replies,
+#${cid}_tab_media:checked ~ .t-panel-media,
+#${cid}_tab_likes:checked ~ .t-panel-likes {
+    display: flex !important;
+}
 `;
 
-    let bodyHtml = `\n<div class="t-gallery-container" style="width: 100%; max-width: 900px !important; margin: 0 auto !important; font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif !important; box-sizing: border-box !important;">\n`;
+    let bodyHtml = `\n<div class="t-gallery-container" style="width: 100%; max-width: 900px !important; margin: 0 auto !important; font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif !important; box-sizing: border-box !important; position: relative !important; display: flex !important; flex-direction: column !important;">\n`;
     
     bodyHtml += `  <input type="radio" id="${cid}_tab_posts" name="tabs_${cid}" class="t-tab-radio" checked>\n`;
     bodyHtml += `  <input type="radio" id="${cid}_tab_replies" name="tabs_${cid}" class="t-tab-radio">\n`;
     bodyHtml += `  <input type="radio" id="${cid}_tab_media" name="tabs_${cid}" class="t-tab-radio">\n`;
     bodyHtml += `  <input type="radio" id="${cid}_tab_likes" name="tabs_${cid}" class="t-tab-radio">\n`;
 
-    const sortedPosts = sortPostsWithProfileFirst(posts);
-    sortedPosts.forEach((post, idx) => {
-        const radius = getCardRadius(idx, sortedPosts.length);
-        let markup;
-        if (post.type === 'profile') markup = buildProfileMarkup(post, radius, cid);
-        else markup = buildTweetMarkup(post, radius, false, cid);
-        
+    const profilePost = posts.find(p => p.type === 'profile');
+    const tweetPosts = posts.filter(p => p.type !== 'profile');
+
+    const normalPosts = tweetPosts.filter(p => !p.isLiked);
+    const likedPosts = tweetPosts.filter(p => p.isLiked);
+
+    const replyPosts = tweetPosts.filter(p => p.replies && p.replies.length > 0);
+    const mediaPosts = tweetPosts.filter(p => {
+        const imgs = parseImages(p.images);
+        const qImgs = p.quote ? parseImages(p.quote.images) : [];
+        return imgs.length > 0 || qImgs.length > 0;
+    });
+
+    const getPanelRadius = (idx, total) => {
+        if (!profilePost && total === 1) return '16px';
+        if (!profilePost && idx === 0) return '16px 16px 0 0';
+        if (idx === total - 1) return '0 0 16px 16px';
+        return '0';
+    };
+
+    if (profilePost) {
+        const profRadius = tweetPosts.length === 0 ? '16px' : '16px 16px 0 0';
+        let pMarkup = buildProfileMarkup(profilePost, profRadius, cid);
+        dynamicStyles += pMarkup.css;
+        bodyHtml += pMarkup.html;
+    }
+
+    bodyHtml += `  <div class="t-panel t-panel-posts">\n`;
+    normalPosts.forEach((post, idx) => {
+        let markup = buildTweetMarkup(post, getPanelRadius(idx, normalPosts.length), false, cid);
         dynamicStyles += markup.css;
         bodyHtml += markup.html;
     });
+    if(normalPosts.length === 0) bodyHtml += `    <div style="padding: 30px; text-align: center; color: var(--t-sub); font-size: 14px;">게시물이 없습니다.</div>\n`;
+    bodyHtml += `  </div>\n`;
+
+    bodyHtml += `  <div class="t-panel t-panel-replies">\n`;
+    replyPosts.forEach((post, idx) => {
+        let markup = buildTweetMarkup(post, getPanelRadius(idx, replyPosts.length), false, cid);
+        dynamicStyles += markup.css;
+        bodyHtml += markup.html;
+    });
+    if(replyPosts.length === 0) bodyHtml += `    <div style="padding: 30px; text-align: center; color: var(--t-sub); font-size: 14px;">답글이 없습니다.</div>\n`;
+    bodyHtml += `  </div>\n`;
+
+    bodyHtml += `  <div class="t-panel t-panel-media">\n`;
+    mediaPosts.forEach((post, idx) => {
+        let markup = buildTweetMarkup(post, getPanelRadius(idx, mediaPosts.length), false, cid);
+        dynamicStyles += markup.css;
+        bodyHtml += markup.html;
+    });
+    if(mediaPosts.length === 0) bodyHtml += `    <div style="padding: 30px; text-align: center; color: var(--t-sub); font-size: 14px;">미디어가 없습니다.</div>\n`;
+    bodyHtml += `  </div>\n`;
+
+    bodyHtml += `  <div class="t-panel t-panel-likes">\n`;
+
+    likedPosts.forEach((post, idx) => {
+        let likedPostCopy = { ...post, forceLike: true };
+        let markup = buildTweetMarkup(likedPostCopy, getPanelRadius(idx, likedPosts.length), false, cid);
+        dynamicStyles += markup.css;
+        bodyHtml += markup.html;
+    });
+    if(likedPosts.length === 0) bodyHtml += `    <div style="padding: 30px; text-align: center; color: var(--t-sub); font-size: 14px;">마음에 들어요 항목이 없습니다.</div>\n`;
+    bodyHtml += `  </div>\n`;
 
     bodyHtml += "\n</div>";
     return `<style>\n${dynamicStyles}\n</style>\n${bodyHtml}`;
 }
 
-const STORAGE_KEY = 'twgen-07221';
-const THEME_KEY = 'twgen-theme-07221';
+const STORAGE_KEY = 'twgen-07222';
+const THEME_KEY = 'twgen-theme-07222';
 let posts = [];
 let editingId = null;
 let modalIsCreatingNew = true;
@@ -1398,6 +1462,7 @@ function renderFeed() {
         const activeRadio = feed.querySelector('.t-tab-radio:checked');
         if (!activeRadio) return;
         
+        const isPosts = activeRadio.id.includes('_tab_posts');
         const isReplies = activeRadio.id.includes('_tab_replies');
         const isMedia = activeRadio.id.includes('_tab_media');
         const isLikes = activeRadio.id.includes('_tab_likes');
@@ -1407,7 +1472,9 @@ function renderFeed() {
             if (!tweet) return;
             const isLiked = tweet.querySelector('.t-like-toggle:checked') !== null;
             
-            if (isReplies && tweet.dataset.hasReplies !== 'true') {
+            if (isPosts && isLiked) {
+                card.style.display = 'none';
+            } else if (isReplies && tweet.dataset.hasReplies !== 'true') {
                 card.style.display = 'none';
             } else if (isMedia && tweet.dataset.hasMedia !== 'true') {
                 card.style.display = 'none';
@@ -1433,6 +1500,8 @@ function renderFeed() {
     });
 
     document.getElementById('copyBtn').disabled = posts.length === 0;
+
+    applyFilter();
 }
 function toggleMenu(e, id) {
     e.preventDefault();
@@ -1505,6 +1574,8 @@ function fillFormFields(post) {
 
     document.getElementById('f-text').value = post ? (post.text || '') : '';
     document.getElementById('f-images').value = post ? (post.images || '') : '';
+    
+    document.getElementById('f-is-liked').checked = post ? !!post.isLiked : false;
 }
 
 function openModal(post) {
@@ -1555,7 +1626,9 @@ function handleSubmit(e) {
         followers: document.getElementById('f-followers').value.trim(),
         
         text: document.getElementById('f-text').value.trim(),
-        images: document.getElementById('f-images').value.trim()
+        images: document.getElementById('f-images').value.trim(),
+        
+        isLiked: type === 'tweet' ? document.getElementById('f-is-liked').checked : false
     };
 
     if (quotingPostId) {
